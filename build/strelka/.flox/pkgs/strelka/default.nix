@@ -189,6 +189,28 @@ buildStdenv.mkDerivation rec {
       --replace-fail 'pickle.dump(taskInfo, open(argFile, "w"))' \
                      'pyflowArgFp = open(argFile, "w"); pickle.dump(taskInfo, pyflowArgFp); pyflowArgFp.close()'
 
+    # PyPy's GC sizes its nursery from the L2/L3 cache size read out of
+    # /sys/devices/system/cpu/cpuX/cache, and prints
+    #   Warning: cannot find your CPU L2 & L3 cache size in ...
+    # to stderr at interpreter startup when it cannot. arm64 kernels routinely
+    # publish the cache levels with no `size` attribute, and containers often mask
+    # the tree entirely, so this fires on aarch64-linux and inside containers on
+    # any arch.
+    #
+    # That warning is fatal here, not cosmetic: pyFlow's task wrapper writes its
+    # signal protocol to stderr and parses that same file back line by line
+    # (checkWrapFileExit), failing the task if any line's 5th field is not
+    # [wrapperSignal]. The warning is the first line of every wrapper's stderr, so
+    # every task "fails" while reporting taskExitCode 0, and both demos die on
+    # their first mkdir. Setting PYPY_GC_NURSERY skips the probe -- and 4MB is
+    # exactly what PyPy falls back to when the probe fails, so this pins the size
+    # it would have used anyway rather than retuning the GC. pyFlow spawns task
+    # wrappers with an inherited environment, so setting it once in the parent
+    # covers every task. No-op under CPython.
+    substituteInPlace "$out/lib/python/pyflow/pyflow.py" \
+      --replace-fail 'moduleDir = os.path.abspath(os.path.dirname(__file__))' \
+                     'os.environ.setdefault("PYPY_GC_NURSERY", "4M"); moduleDir = os.path.abspath(os.path.dirname(__file__))'
+
     # Make the package self-contained: pin every python entrypoint (bin, libexec,
     # lib) to pypy instead of relying on a `python2` on the consumer's PATH.
     # pyFlow launches the libexec helper scripts by their shebang at runtime, so
