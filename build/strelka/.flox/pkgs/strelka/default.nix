@@ -98,6 +98,25 @@ buildStdenv.mkDerivation rec {
       substituteInPlace "$bstmp/boost_1_58_0_subset/boost/numeric/conversion/$e"_enum.hpp \
         --replace-fail "enum $e"_enum "enum $e"_enum" : int"
     done
+
+    # Boost.Build 1.58 predates aarch64. It deduces the target architecture by
+    # compiling probe files, and the ARM probe only accepts __arm__/__thumb__/
+    # __TARGET_ARCH_ARM/__TARGET_ARCH_THUMB/_ARM/_M_ARM -- never __aarch64__, the
+    # only one aarch64 gcc defines. So every probe fails, `architecture` comes back
+    # empty while `address-model` correctly deduces 64, and gcc.jam's guard
+    # (`if $(arch) != arm`, its sole mention of arm) falls through and passes -m64,
+    # an option the aarch64 gcc backend does not have. All 85 boost targets then
+    # fail and cmake reports "Failed to build boost library 1.58.0".
+    #
+    # Teach the probe about __aarch64__ so the deduction is simply correct. No-op on
+    # x86_64, and on Darwin regardless: clang-darwin.jam declares its own compile
+    # actions and never calls gcc.setup-address-model, which is why the aarch64
+    # -m64 bug is invisible there. clang-linux.jam does call it, so this also covers
+    # a future clang build on aarch64-linux.
+    substituteInPlace "$bstmp/boost_1_58_0_subset/libs/config/checks/architecture/arm.cpp" \
+      --replace-fail '!defined(_ARM) && !defined(_M_ARM)' \
+                     '!defined(_ARM) && !defined(_M_ARM) && !defined(__aarch64__)'
+
     tar cjf redist/boost_1_58_0_subset.tar.bz2 -C "$bstmp" boost_1_58_0_subset
     rm -rf "$bstmp"
 
