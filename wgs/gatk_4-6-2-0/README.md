@@ -176,6 +176,11 @@ fatal error: 'stdio.h' file not found            # no SDK
 clang-16: error: linker command failed ...       # no system linker
 ```
 
+The hook warns about this on every activation once `gatkcondaenv` is built, because
+the failure is otherwise invisible: on a Mac without the CLT every materialization
+step succeeds and `.ready` is written, so the env looks healthy right up until a gCNV
+run dies.
+
 This is not something the lock can fix; Apple does not permit redistributing the SDK,
 so unlike `x86_64-linux` (whose lock ships `gcc`/`gxx` *and* `sysroot_linux-64`, making
 it self-contained) the macOS env cannot be. There is a working fallback if you cannot

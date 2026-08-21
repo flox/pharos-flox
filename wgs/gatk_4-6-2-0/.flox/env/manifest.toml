@@ -1,17 +1,3 @@
-## GATK 4.6.2.0: catalog-native Flox environment (with gatkcondaenv)
-## Replaces wgs/gatk_4-6-2-0/Dockerfile, which was `FROM broadinstitute/gatk:4.6.2.0`.
-##
-## That base image ships TWO things: the GATK jar, and a conda Python environment
-## ("gatkcondaenv") that a handful of GATK tools shell out to. The jar comes from
-## the Flox catalog at the exact pinned version; the Python env is reproduced here,
-## materialized on first activation, so this environment has full parity with the
-## image it replaces rather than being jar-only.
-##
-## Why the Python env is needed: DetermineGermlineContigPloidy, GermlineCNVCaller,
-## PostprocessGermlineCNVCalls (germline CNV) and NVScoreVariants (neural-net
-## filtering) invoke a Python interpreter and `import gcnvkernel` (+ pymc / pytensor
-## / pytorch). Without gatkcondaenv those tools fail with "gcnvkernel could not be
-## imported"; the pure-Java tools (HaplotypeCaller, etc.) never touch Python.
 schema-version = "1.13.0"
 
 [install]
@@ -109,6 +95,48 @@ materialize_gatk_gcnv_env() {
 }
 
 materialize_gatk_gcnv_env
+
+# ---------------------------------------------------------------------------
+# macOS only: warn when Xcode Command Line Tools are missing.
+#
+# WHY this is not covered by the materialization above: on a Mac without the CLT
+# every step of that build SUCCEEDS (the conda env links, gcnvkernel installs) and
+# `.ready` gets written, so the environment looks healthy, and then the gCNV tools
+# die at runtime. PyTensor compiles C++ at RUN time, and the conda env's own
+# clangxx_osx-arm64 defers to the system SDK and linker, which ship only with the
+# CLT. Without them `import gcnvkernel` fails on a missing stdio.h and then a
+# failed link. So "materialized" is not evidence the Python tools will run, and
+# that gap is what this warns about.
+#
+# WHY the lock cannot fix it: Apple does not permit redistributing the SDK. The
+# x86_64-linux lock ships gcc/gxx AND sysroot_linux-64 and is therefore fully
+# self-contained; the macOS one structurally cannot be.
+#
+# Warns on EVERY activation, not once at build time: the machine is in a broken
+# state until the tools are installed, and a message printed only during the
+# one-time materialization would scroll past unnoticed.
+# ---------------------------------------------------------------------------
+warn_if_macos_toolchain_missing() {
+    [ "$(uname -s)" = "Darwin" ] || return 0
+
+    # Only meaningful once gatkcondaenv exists. If it does not, the platform/lock
+    # message above already explains that the Python tools are unavailable, and a
+    # second warning about compilers would just be noise.
+    [ -f "$FLOX_ENV_CACHE/gatkcondaenv/.ready" ] || return 0
+
+    # `xcode-select -p` prints the active developer dir and exits 0 when either the
+    # CLT or a full Xcode is installed; it exits non-zero when neither is.
+    xcode-select -p >/dev/null 2>&1 && return 0
+
+    echo "gatk: Xcode Command Line Tools not found. gatkcondaenv is built, but GATK's"
+    echo "      gCNV and NVScoreVariants tools compile C++ at runtime via PyTensor and"
+    echo "      will fail without them. Install with:"
+    echo "          xcode-select --install"
+    echo "      Or run with PyTensor's C backend disabled, correct but much slower:"
+    echo "          PYTENSOR_FLAGS=cxx= gatk GermlineCNVCaller ..."
+}
+
+warn_if_macos_toolchain_missing
 
 # Put the materialized gatkcondaenv's bin FIRST on PATH, on every activation.
 #
