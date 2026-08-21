@@ -1,0 +1,77 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.13.0",
+    "install": {
+      "htslib": {
+        "pkg-path": "htslib"
+      }
+    },
+    "options": {
+      "systems": [
+        "x86_64-linux",
+        "aarch64-linux"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "htslib",
+      "broken": false,
+      "derivation": "/nix/store/m3adcfymk13k13czk09qib2ylcq5l8rr-htslib-1.22.drv",
+      "description": "C library for reading/writing high-throughput sequencing data",
+      "install_id": "htslib",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "htslib-1.22",
+      "pname": "htslib",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:25:22.037861Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.22",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/6nxizcfc4w3xx0akhzyxny6p3q2fq46z-htslib-1.22"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "htslib",
+      "broken": false,
+      "derivation": "/nix/store/zkzgfidg8nk9v8dnfy3hsiajrdr7x33y-htslib-1.22.drv",
+      "description": "C library for reading/writing high-throughput sequencing data",
+      "install_id": "htslib",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "htslib-1.22",
+      "pname": "htslib",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:58:15.713868Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.22",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/nrnhl6zs8x2pw5s9g1kbcb3xxia6y6dd-htslib-1.22"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}

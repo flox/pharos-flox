@@ -1,0 +1,17 @@
+## cutadapt 5.2 — build-only Flox environment (Nix-expression build)
+##
+## cutadapt (and its dnaio/xopen deps) were dropped from nixpkgs, so this repo
+## builds them from PyPI to publish cutadapt to the flox-labs catalog.
+##
+##   Build:   flox build cutadapt         -> ./result-cutadapt
+##   Publish: flox publish -o flox-labs cutadapt   (run by a maintainer)
+##
+## The build recipe lives in .flox/pkgs/cutadapt/default.nix.
+schema-version = "1.13.0"
+
+[install]
+# Dev-shell only. The build's dependency tree is declared in the Nix expression.
+python3.pkg-path = "python3"
+
+[options]
+systems = ["x86_64-linux", "aarch64-linux", "x86_64-darwin", "aarch64-darwin"]

@@ -1,0 +1,22 @@
+## strelka 2.9.10 — build-only Flox environment (Nix-expression build)
+##
+## This repo exists solely to BUILD and PUBLISH strelka, which is absent from the
+## Flox catalog (removed from nixpkgs because it requires Python 2). The build
+## compiles strelka from source and wires it to the catalog's actively-maintained
+## pypy27 (Python 2.7.18) — no insecure CPython 2.7 anywhere.
+##
+##   Build:   flox build strelka          -> ./result-strelka
+##   Publish: flox publish -o flox-labs strelka   (run by a maintainer, after
+##                                                 git commit + push to a remote)
+##
+## The build recipe lives in .flox/pkgs/strelka/default.nix.
+schema-version = "1.13.0"
+
+[install]
+# Dev-shell only, for local iteration / poking at the interpreter. The build's
+# own toolchain is declared in the Nix expression, independent of this section.
+pypy27.pkg-path = "pypy27"
+
+[options]
+# strelka (and pypy27) are Linux-only in the catalog.
+systems = ["x86_64-linux", "aarch64-linux"]

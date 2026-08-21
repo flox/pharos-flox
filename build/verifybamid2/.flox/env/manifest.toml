@@ -1,0 +1,19 @@
+## verifybamid2 1.0.5 — build-only Flox environment (Nix-expression build)
+##
+## verifybamid2 is absent from the Flox catalog. This repo builds it from source
+## (with a pinned htslib 1.9) plus its bundled SVD resource panels, to publish it
+## to the flox-labs catalog.
+##
+##   Build:   flox build verifybamid2     -> ./result-verifybamid2
+##   Publish: flox publish -o flox-labs verifybamid2   (run by a maintainer)
+##
+## The build recipe lives in .flox/pkgs/verifybamid2/default.nix.
+## The built binary is $out/bin/VerifyBamID; reference panels are in $out/resource.
+schema-version = "1.13.0"
+
+[install]
+# Dev-shell only. The build's dependency tree is declared in the Nix expression.
+htslib.pkg-path = "htslib"
+
+[options]
+systems = ["x86_64-linux", "aarch64-linux"]

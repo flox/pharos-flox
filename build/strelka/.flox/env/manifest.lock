@@ -1,0 +1,77 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.13.0",
+    "install": {
+      "pypy27": {
+        "pkg-path": "pypy27"
+      }
+    },
+    "options": {
+      "systems": [
+        "x86_64-linux",
+        "aarch64-linux"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "pypy27",
+      "broken": false,
+      "derivation": "/nix/store/syg7n1jdvqzk7k60y42wjhhviidq3avr-pypy-7.3.19.drv",
+      "description": "Fast, compliant alternative implementation of the Python language (2.7)",
+      "install_id": "pypy27",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "pypy-7.3.19",
+      "pname": "pypy27",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:26:01.091222Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.3.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/r0h2rinr2ba8kgami39562z18ajyng2k-pypy-7.3.19"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "pypy27",
+      "broken": false,
+      "derivation": "/nix/store/984w7q0r5pawzr92crzq9083ydblh61q-pypy-7.3.19.drv",
+      "description": "Fast, compliant alternative implementation of the Python language (2.7)",
+      "install_id": "pypy27",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "pypy-7.3.19",
+      "pname": "pypy27",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:58:59.414166Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.3.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/bvkwisg1v8k00m242lfk3r09sag631wk-pypy-7.3.19"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}
