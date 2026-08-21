@@ -10,10 +10,9 @@
     },
     "options": {
       "systems": [
-        "aarch64-darwin",
+        "x86_64-linux",
         "aarch64-linux",
-        "x86_64-darwin",
-        "x86_64-linux"
+        "aarch64-darwin"
       ]
     }
   },
@@ -75,36 +74,6 @@
         "out": "/nix/store/xfyvj2q824gmmspy40fpgx9laippgpn9-samtools-1.19.2"
       },
       "system": "aarch64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "samtools",
-      "broken": false,
-      "derivation": "/nix/store/k9jslvnacw39s0ivql6kaki31b852c70-samtools-1.19.2.drv",
-      "description": "Tools for manipulating SAM/BAM/CRAM format",
-      "install_id": "samtools",
-      "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=eb62e6aa39ea67e0b8018ba8ea077efe65807dc8",
-      "name": "samtools-1.19.2",
-      "pname": "samtools",
-      "rev": "eb62e6aa39ea67e0b8018ba8ea077efe65807dc8",
-      "rev_count": 738172,
-      "rev_date": "2025-01-14T19:41:48Z",
-      "scrape_date": "2025-01-16T00:14:48Z",
-      "stabilities": [
-        "staging",
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.19.2",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "out": "/nix/store/q2z008r7ninrp1zgndwrljzalr0df1x1-samtools-1.19.2"
-      },
-      "system": "x86_64-darwin",
       "group": "toplevel",
       "priority": 5
     },
