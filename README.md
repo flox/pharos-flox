@@ -45,9 +45,9 @@ They aren't in the Flox catalog:
 - **verifybamid2 1.0.5**. Never in the catalog; built from source with a pinned
   `htslib` 1.9 and its bundled SVD reference panels.
 
-Each `build/<tool>/` is a **standalone, build-only** Flox repo. Its recipe lives
-in `.flox/pkgs/<tool>/default.nix` and produces a reproducible artifact with
-`flox build`. The build hosts fetch only hash-pinned sources. There's no pre-build
+Each `build/<tool>/` is a **self-contained, build-only** Flox environment. Its
+recipe lives in `.flox/pkgs/<tool>/default.nix` and produces a reproducible
+artifact with `flox build`. The build hosts fetch only hash-pinned sources. There's no pre-build
 network access beyond those. The actual build is performed in the Nix sandbox.
 
 ## Maintainer workflow: publish the three built tools
