@@ -132,10 +132,10 @@ the manifest and working in the shell by hand; confirm it there with `which pyth
 ## Per-platform locks
 
 Conda packages are architecture-specific, so the lock is per platform, named
-`gatkcondaenv.<system>.lock`. `x86_64-linux` is committed and validated here. The
-hook maps the running system to the matching lock; if no lock exists for the current
-platform it says so and skips the Python env, leaving the Java tools fully working.
-To add a platform, generate its lock on that hardware:
+`gatkcondaenv.<system>.lock`. `x86_64-linux` and `aarch64-darwin` are committed and
+validated here. The hook maps the running system to the matching lock; if no lock
+exists for the current platform it says so and skips the Python env, leaving the Java
+tools fully working. To add a platform, generate its lock on that hardware:
 
 ```bash
 # on the target machine, from a solved gatkcondaenv:
@@ -143,7 +143,48 @@ micromamba env export --explicit -p <path-to-gatkcondaenv> > gatkcondaenv.<syste
 ```
 
 Target systems for this repo are `x86_64-linux`, `aarch64-linux`, and
-`aarch64-darwin`.
+`aarch64-darwin`. `aarch64-linux` is still outstanding.
+
+### aarch64-darwin is a port of the spec, not a re-export
+
+GATK's official `gatkcondaenv.yml` cannot be solved unchanged on Apple Silicon: it
+pins Intel-only MKL. The adapted spec is committed as `gatkcondaenv.macos.yml`, and
+`gatkcondaenv.aarch64-darwin.lock` is what it solves to. Four changes, all forced by
+what conda-forge/bioconda actually publish for `osx-arm64`:
+
+| Upstream pin | On `osx-arm64` | Why |
+|---|---|---|
+| `conda-forge::blas=1.0=mkl` | dropped | MKL is x86-only; pytorch links Accelerate/OpenBLAS here instead |
+| `conda-forge::pytorch=2.1.0=*mkl*100` | `pytorch=2.1.0` | the MKL build string is x86-only; version pin is unchanged |
+| `bioconda::pysam=0.22.0` | `pysam=0.22.1` | 0.22.0 has no `osx-arm64` build; 0.22.1 is the oldest that does |
+| `conda-forge::pyvcf=0.6.8` | `bioconda::pyvcf3=1.0.4` | PyVCF is dead upstream and never built for `osx-arm64`; pyvcf3 is its maintained fork and keeps the same top-level `vcf` module |
+
+The last two are not cosmetic: `pysam` is imported by `scorevariants/readers.py` and
+`encoders.py`, and `vcf` by `gcnvkernel/postprocess/viterbi_segmentation.py`, so
+neither could simply be dropped. Every other package holds the exact version the
+`x86_64-linux` lock resolved to.
+
+### macOS prerequisite: Xcode Command Line Tools
+
+**On macOS the gCNV tools additionally require `xcode-select --install`.** PyTensor
+compiles C++ at *run* time, and the conda env's own `clangxx_osx-arm64` defers to the
+system SDK and linker, which ship only with the Command Line Tools. Without them
+`import gcnvkernel` fails outright once PyTensor finds a compiler it cannot use:
+
+```
+fatal error: 'stdio.h' file not found            # no SDK
+clang-16: error: linker command failed ...       # no system linker
+```
+
+This is not something the lock can fix; Apple does not permit redistributing the SDK,
+so unlike `x86_64-linux` (whose lock ships `gcc`/`gxx` *and* `sysroot_linux-64`, making
+it self-contained) the macOS env cannot be. There is a working fallback if you cannot
+install the CLT, at a large performance cost, since every PyTensor op then runs its
+Python implementation instead of compiled C:
+
+```bash
+PYTENSOR_FLAGS=cxx= gatk GermlineCNVCaller ...   # verified to import and run
+```
 
 ---
 
@@ -161,6 +202,16 @@ committed lock and archive and was checked end to end on `x86_64-linux`:
 | Python stack imports | `gcnvkernel`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0.post100, numpy, scipy, h5py, sklearn |
 | Java tool | `gatk` runs the 4.6.2.0 jar |
 
+The same clean-run check on `aarch64-darwin`:
+
+| Check | Result |
+|---|---|
+| conda env materializes from the lock | 310 packages installed |
+| gcnvkernel installs from the archive | `gatkpythonpackages-0.2` wheel built and installed |
+| exec-stack fix | no-op, 0 libraries (Mach-O, not ELF; the script skips non-ELF files) |
+| Python stack imports | `gcnvkernel`, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0, pysam 0.22.1, `vcf` (pyvcf3) |
+| PyTensor C backend | **requires Xcode CLT**; without it, use `PYTENSOR_FLAGS=cxx=` (see above) |
+
 The exec-stack fix and the `which python` check are the two that would silently pass
 a naive smoke test and then fail a real gCNV run, so both are verified explicitly.
 
@@ -168,7 +219,9 @@ a naive smoke test and then fail a real gCNV run, so both are verified explicitl
 
 ## What is committed here, and what is not
 
-Committed: the manifest, the `x86_64-linux` lock, the 119 KB gcnvkernel archive,
+Committed: the manifest, the `x86_64-linux` and `aarch64-darwin` locks, the
+`gatkcondaenv.macos.yml` spec those Apple-Silicon substitutions live in, the 119 KB
+gcnvkernel archive,
 `clear-execstack.py`, and this README. Not committed: the materialized conda env,
 which lives under `$FLOX_ENV_CACHE` (built once per machine, reused after, and
 removed by `flox delete`). On disk that cache is about 5 GB: the env proper is
