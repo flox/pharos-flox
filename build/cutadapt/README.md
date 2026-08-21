@@ -39,9 +39,9 @@ We probed the nixpkgs base for `cutadapt`, `python3Packages.dnaio`,
 `python3Packages.xopen`, `python3Packages.isal` and `cython`. Result: the first
 three are absent; `isal` and `cython` are present.
 
-> **Reusable lesson.** The Flox Base Catalog and the `flox build` base nixpkgs are
+> **Reusable lesson.** The Flox catalog and the `flox build` base nixpkgs are
 > *different* package sources: a name can be in one and not the other. Probe the
-> base directly ('a tiny `runCommand` that forces `pkg.version`) before deciding
+> base directly (a tiny `runCommand` that forces `pkg.version`) before deciding
 > what you must build vs. what you can reuse. And **force** the value: a lazy,
 > unused function argument won't trigger a "missing"/"removed" error, so a naive
 > probe can report a false "present."
