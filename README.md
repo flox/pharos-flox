@@ -1,4 +1,4 @@
-# Floxified WGS tools
+# pharos-flox: WGS tools as Flox environments
 
 Flox environment equivalents of the `wgs/` container images. Each Dockerfile
 packaged a **stock upstream tool** (no custom patches), so instead of rebuilding
@@ -8,7 +8,7 @@ exists (b) or from a small, reproducible Flox build when it doesn't.
 ## Layout
 
 ```
-floxified/
+pharos-flox/
   wgs/<tool>_<ver>/.flox/     runtime environments (what you activate/use)
   build/<tool>/.flox/         build-only environments for tools missing from the catalog
 ```
@@ -29,7 +29,7 @@ floxified/
 The catalog-native environments work as-is:
 
 ```bash
-flox activate -d floxified/wgs/samtools_1-19-2 -- samtools --version
+flox activate -d pharos-flox/wgs/samtools_1-19-2 -- samtools --version
 ```
 
 ## Why three tools are built instead of installed
@@ -67,8 +67,8 @@ flox publish -o flox-labs <tool>
 Then finalize each runtime env. e.g. for `cutadapt`:
 
 ```bash
-flox install -d floxified/wgs/cutadapt_5-2 flox-labs/cutadapt
-flox activate -d floxified/wgs/cutadapt_5-2 -- cutadapt --version
+flox install -d pharos-flox/wgs/cutadapt_5-2 flox-labs/cutadapt
+flox activate -d pharos-flox/wgs/cutadapt_5-2 -- cutadapt --version
 ```
 
 The provided binary isn't always named after the package: strelka's entrypoints

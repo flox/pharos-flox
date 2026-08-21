@@ -1,6 +1,6 @@
 ## VerifyBamID2 1.0.5 — runtime Flox environment
 ## Installs the verifybamid2 package built + published from the build repo at
-## floxified/build/verifybamid2 (verifybamid2 is not in the public catalog).
+## pharos-flox/build/verifybamid2 (verifybamid2 is not in the public catalog).
 ##
 ## Resolves only AFTER a maintainer runs `flox publish -o flox-labs verifybamid2`.
 ## To finalize this env post-publish:  flox install -d . flox-labs/verifybamid2
