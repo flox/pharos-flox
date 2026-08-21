@@ -129,6 +129,30 @@ the manifest and working in the shell by hand; confirm it there with `which pyth
 
 ---
 
+## Portability: where the lock and archive come from
+
+The hook needs three files at activation: the per-platform conda lock,
+`gatkPythonPackageArchive.zip`, and `clear-execstack.py`. It resolves them in this
+order:
+
+1. `$FLOX_ENV/share/gatkcondaenv`, installed by the **`flox-labs/gatkcondaenv`**
+   catalog package (built from `build/gatkcondaenv/`). This is what makes the
+   environment portable.
+2. `$FLOX_ENV_PROJECT`, this repo's own copies, for in-tree development.
+
+The fallback is not the general case, and relying on it alone was a bug.
+`$FLOX_ENV_PROJECT` is *the directory containing `.flox`*: for a checkout that is the
+repo, but for an environment pulled from FloxHub with `flox activate -r
+flox-labs/gatk` it is `~/.cache/flox/remote/<owner>/<name>`, which contains only
+`.flox`. None of the three files are there, so the Python tools were silently
+unavailable anywhere outside a checkout, with a message that blamed a missing lock
+rather than a missing repo. See `build/gatkcondaenv/README.md`.
+
+Note this makes the environment independent of *GitHub*, not of the network: first
+activation still downloads ~1.8 GB of conda packages from anaconda.org.
+
+---
+
 ## Per-platform locks
 
 Conda packages are architecture-specific, so the lock is per platform, named

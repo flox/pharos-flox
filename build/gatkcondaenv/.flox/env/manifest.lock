@@ -1,0 +1,126 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.13.0",
+    "install": {
+      "coreutils": {
+        "pkg-path": "coreutils"
+      }
+    },
+    "options": {
+      "systems": [
+        "x86_64-linux",
+        "aarch64-linux",
+        "aarch64-darwin"
+      ]
+    },
+    "build": {
+      "gatkcondaenv": {
+        "command": "  install -d \"$out/share/gatkcondaenv\"\n\n  # Per-platform explicit conda locks. The consuming hook selects one by mapping\n  # $(uname -s)-$(uname -m) to the flox system name.\n  install -m 644 gatkcondaenv.x86_64-linux.lock    \"$out/share/gatkcondaenv/\"\n  install -m 644 gatkcondaenv.aarch64-darwin.lock  \"$out/share/gatkcondaenv/\"\n\n  # The Apple-Silicon-adapted spec the aarch64-darwin lock was solved from. Not\n  # used at runtime; shipped so the lock can be regenerated or audited from the\n  # package alone, without the repo.\n  install -m 644 gatkcondaenv.macos.yml            \"$out/share/gatkcondaenv/\"\n\n  # gcnvkernel + scorevariants. Not a conda or PyPI package: GATK ships it inside\n  # its release, and the hook pip-installs it into the materialized conda env.\n  install -m 644 gatkPythonPackageArchive.zip      \"$out/share/gatkcondaenv/\"\n\n  # Clears the spurious executable-stack flag on conda-forge's libtorch_cpu.so.\n  # Executable: the hook invokes it with the conda env's own python.\n  install -m 755 clear-execstack.py                \"$out/share/gatkcondaenv/\"\n",
+        "sandbox": "pure",
+        "version": "4.6.2.0",
+        "description": "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment"
+      }
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "coreutils",
+      "broken": false,
+      "derivation": "/nix/store/ahsbdy8sgncsbxmlpvcypd0ia5hg5k56-coreutils-9.11.drv",
+      "description": "GNU Core Utilities",
+      "install_id": "coreutils",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "coreutils-9.11",
+      "pname": "coreutils",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T04:55:33.937534Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "9.11",
+      "outputs_to_install": [
+        "out",
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "info": "/nix/store/8pgwq4jvzrcgyz833sc2v1k8z19xbjfl-coreutils-9.11-info",
+        "out": "/nix/store/0y55d4qc8fmdhmn3c890m0zbaksprycj-coreutils-9.11"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "coreutils",
+      "broken": false,
+      "derivation": "/nix/store/zywpcpzi0b2d4av1h0lg7x8nnf672mfz-coreutils-9.11.drv",
+      "description": "GNU Core Utilities",
+      "install_id": "coreutils",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "coreutils-9.11",
+      "pname": "coreutils",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:25:02.338755Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "9.11",
+      "outputs_to_install": [
+        "out",
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/9s0n8g4m0yy3fkglglir6vfm3g7lncvl-coreutils-9.11-debug",
+        "info": "/nix/store/kk4nsbj48pn6d33rvmxiw6w7r17bqdkn-coreutils-9.11-info",
+        "out": "/nix/store/dqxknsb71lsgzfzcdmn6x7fzssqbdyyx-coreutils-9.11"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "coreutils",
+      "broken": false,
+      "derivation": "/nix/store/fknhv943140n2074n97va7hcavzif90c-coreutils-9.11.drv",
+      "description": "GNU Core Utilities",
+      "install_id": "coreutils",
+      "license": "GPL-3.0-or-later",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "coreutils-9.11",
+      "pname": "coreutils",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:57:55.296048Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "9.11",
+      "outputs_to_install": [
+        "out",
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "debug": "/nix/store/3wlr54z6chbpnlg1i09a95lkfkm234ks-coreutils-9.11-debug",
+        "info": "/nix/store/4533yr2rnh0czwl1m4wjl1m912kmn9j8-coreutils-9.11-info",
+        "out": "/nix/store/97d5ygrvqj55f4nx1x34wfdcc7qn11c0-coreutils-9.11"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}

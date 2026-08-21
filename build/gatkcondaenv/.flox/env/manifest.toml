@@ -1,0 +1,41 @@
+schema-version = "1.13.0"
+
+[install]
+# Nothing is needed to build: the build only copies files. An [install] entry is
+# required to publish, and coreutils is what the copy actually uses.
+coreutils.pkg-path = "coreutils"
+
+[build.gatkcondaenv]
+description = "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment"
+version = "4.6.2.0"
+# Pure: these are git-tracked data files with no network or host dependency, so the
+# build is fully reproducible and safe to publish (see FLOX.md section 9.2).
+sandbox = "pure"
+command = '''
+  install -d "$out/share/gatkcondaenv"
+
+  # Per-platform explicit conda locks. The consuming hook selects one by mapping
+  # $(uname -s)-$(uname -m) to the flox system name.
+  install -m 644 gatkcondaenv.x86_64-linux.lock    "$out/share/gatkcondaenv/"
+  install -m 644 gatkcondaenv.aarch64-darwin.lock  "$out/share/gatkcondaenv/"
+
+  # The Apple-Silicon-adapted spec the aarch64-darwin lock was solved from. Not
+  # used at runtime; shipped so the lock can be regenerated or audited from the
+  # package alone, without the repo.
+  install -m 644 gatkcondaenv.macos.yml            "$out/share/gatkcondaenv/"
+
+  # gcnvkernel + scorevariants. Not a conda or PyPI package: GATK ships it inside
+  # its release, and the hook pip-installs it into the materialized conda env.
+  install -m 644 gatkPythonPackageArchive.zip      "$out/share/gatkcondaenv/"
+
+  # Clears the spurious executable-stack flag on conda-forge's libtorch_cpu.so.
+  # Executable: the hook invokes it with the conda env's own python.
+  install -m 755 clear-execstack.py                "$out/share/gatkcondaenv/"
+'''
+
+[options]
+systems = [
+  "x86_64-linux",
+  "aarch64-linux",
+  "aarch64-darwin",
+]

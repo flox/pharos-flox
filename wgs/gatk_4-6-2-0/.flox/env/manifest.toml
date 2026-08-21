@@ -43,13 +43,37 @@ materialize_gatk_gcnv_env() {
         Darwin-arm64)   sys=aarch64-darwin ;;
         *)              sys="$(uname -s)-$(uname -m)" ;;
     esac
-    local lock="$FLOX_ENV_PROJECT/gatkcondaenv.$sys.lock"
 
-    # If we do not have a lock for this platform yet, do not fail activation,
-    # plain GATK (Java) still works; only the gCNV/NN Python tools are unavailable.
+    # Locate the data files this hook needs: the per-platform lock, the gcnvkernel
+    # archive, and the exec-stack fix.
+    #
+    # PREFERRED: the flox-labs/gatkcondaenv catalog package, which installs them to
+    # $FLOX_ENV/share/gatkcondaenv. That path is present however the environment was
+    # obtained, which is what makes this environment portable.
+    #
+    # FALLBACK: this repo's own copies beside the manifest. $FLOX_ENV_PROJECT is the
+    # repo ONLY when the environment is a checkout of it. For an environment pulled
+    # from FloxHub (`flox activate -r flox-labs/gatk`) it is
+    # ~/.cache/flox/remote/<owner>/<name>, which contains just .flox and none of
+    # these files, so relying on it alone silently disabled the Python tools
+    # everywhere except in-tree. The fallback exists for in-tree development and can
+    # be dropped once the package is installed everywhere.
+    local assets
+    if [ -d "$FLOX_ENV/share/gatkcondaenv" ]; then
+        assets="$FLOX_ENV/share/gatkcondaenv"
+    else
+        assets="$FLOX_ENV_PROJECT"
+    fi
+
+    local lock="$assets/gatkcondaenv.$sys.lock"
+
+    # No lock for this platform: do not fail activation, plain GATK (Java) still
+    # works; only the gCNV/NN Python tools are unavailable.
     if [ ! -f "$lock" ]; then
-        echo "gatk: no gatkcondaenv lock for '$sys' yet, Java tools work; the gCNV/NN"
-        echo "      Python tools need a lock generated on this platform (see README)."
+        echo "gatk: no gatkcondaenv lock for '$sys', Java tools work; the gCNV/NN Python"
+        echo "      tools need one. If '$sys' has a lock, install the assets package:"
+        echo "          flox install flox-labs/gatkcondaenv"
+        echo "      Otherwise the lock must be generated on this platform (see README)."
         return 0
     fi
 
@@ -76,7 +100,7 @@ materialize_gatk_gcnv_env() {
     # gatkPythonPackageArchive.zip. We committed that 119 KB archive here (rather
     # than re-download GATK's 700 MB release just to extract it) and pip-install it
     # into the freshly-created env, exactly as the official gatkcondaenv.yml does.
-    if ! "$gcnv/bin/pip" install --no-deps "$FLOX_ENV_PROJECT/gatkPythonPackageArchive.zip"; then
+    if ! "$gcnv/bin/pip" install --no-deps "$assets/gatkPythonPackageArchive.zip"; then
         echo "gatk: gcnvkernel install failed."
         return 1
     fi
@@ -86,7 +110,7 @@ materialize_gatk_gcnv_env() {
     # the (spurious) executable-stack flag so NVScoreVariants works everywhere.
     # Run with the env's own python: the fix only reads/writes ELF headers, so it
     # never imports torch (which would be the thing that is broken).
-    "$gcnv/bin/python" "$FLOX_ENV_PROJECT/clear-execstack.py" "$gcnv"
+    "$gcnv/bin/python" "$assets/clear-execstack.py" "$gcnv"
 
     # Mark complete only after every step succeeded, so a partial/aborted build
     # is retried on the next activation instead of being trusted.
