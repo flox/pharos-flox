@@ -1,18 +1,24 @@
-## BWA 0.7.17 — catalog-native Flox environment
-## Replaces wgs/bwa_0-7-17/Dockerfile. Same stock upstream tool, installed from
-## the Flox catalog at the exact pinned version instead of compiled from source.
+## BWA 0.7.17 — runtime Flox environment
+## The catalog has bwa@0.7.17 for x86_64 only (it predates ARM support). To get
+## the exact version on all four systems, we install the full-platform build
+## published from build/bwa (native SSE2 on x86_64, sse2neon on aarch64).
 ##
-## NOTE: bwa@0.7.17 in the catalog is x86_64 only. For aarch64 the catalog's
-## nearest is bwa@0.7.19 — add it with a systems-scoped descriptor if aarch64
-## support is required.
+## Resolves only AFTER a maintainer runs `flox publish -o flox-labs bwa` on each
+## target platform. To finalize this env post-publish:  flox install -d . flox-labs/bwa
+##
+## Alternative (avoids republishing x86_64, which the catalog already has): keep
+## `bwa.pkg-path = "bwa"` scoped to the x86_64 systems and add a second descriptor
+## `bwa-arm.pkg-path = "flox-labs/bwa"` scoped to the aarch64 systems.
 schema-version = "1.13.0"
 
 [install]
-bwa.pkg-path = "bwa"
+bwa.pkg-path = "flox-labs/bwa"
 bwa.version = "0.7.17"
 
 [options]
 systems = [
-  "x86_64-darwin",
   "x86_64-linux",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "aarch64-darwin",
 ]

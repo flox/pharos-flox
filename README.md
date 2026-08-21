@@ -20,8 +20,8 @@ pharos-flox/
 | samtools | 1.19.2 | catalog-native (exact) |
 | seqtk | 1.4 | catalog-native (exact) |
 | fastqc | 0.12.1 | catalog-native (exact) |
-| bwa | 0.7.17 | catalog-native (exact; x86_64 — catalog has no aarch64 0.7.17) |
 | gatk | 4.6.2.0 | catalog-native (exact) |
+| bwa | 0.7.17 | **built** → `flox-labs/bwa` (catalog is x86_64-only; built for all 4 systems) |
 | strelka | 2.9.10 | **built** → `flox-labs/strelka` (see below) |
 | cutadapt | 5.2 | **built** → `flox-labs/cutadapt` |
 | verifybamid2 | 1.0.5 | **built** → `flox-labs/verifybamid2` |
@@ -32,10 +32,13 @@ The catalog-native environments work as-is:
 flox activate -d pharos-flox/wgs/samtools_1-19-2 -- samtools --version
 ```
 
-## Why three tools are built instead of installed
+## Why four tools are built instead of installed
 
-They aren't in the Flox catalog:
+They aren't available (at the exact version, on every system) in the Flox catalog:
 
+- **bwa 0.7.17**. In the catalog but **x86_64 only** — this 2017 release predates
+  ARM support (hard-coded x86 SSE2 intrinsics). Built for all four systems, using
+  the `sse2neon` shim on aarch64. Build + publish on each target platform.
 - **strelka 2.9.10**. In the catalog but blocked: it needs Python 2, which
   nixpkgs now marks insecure / has removed. The build compiles strelka from
   source against the catalog's maintained **pypy27** (PyPy 2.7) — no insecure
@@ -88,10 +91,17 @@ subdirectory:
 git clone <your-repo-host>/<this-repo>.git && cd <this-repo>
 flox auth login                     # authenticate once
 
+cd build/bwa           && flox publish -o <your_org_namespace> bwa           && cd ../..
 cd build/strelka       && flox publish -o <your_org_namespace> strelka       && cd ../..
 cd build/cutadapt      && flox publish -o <your_org_namespace> cutadapt      && cd ../..
 cd build/verifybamid2  && flox publish -o <your_org_namespace> verifybamid2  && cd ../..
 ```
+
+Note on **multi-platform packages**: `flox publish` builds natively for the
+current system, so a package that spans systems is published by running the
+command on each. `bwa` targets all four (x86_64/aarch64 × linux/darwin) — publish
+it once per platform. `strelka` and `verifybamid2` are linux-only; `cutadapt` is
+verified on x86_64-linux (its recipe declares all four).
 
 Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
