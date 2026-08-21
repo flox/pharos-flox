@@ -56,7 +56,7 @@ sealed artifact.
 
 ## Versioning
 
-`version` is `<GATK release>-<short commit>`, e.g. `4.6.2.0-ffe4631`.
+`version` is `<GATK release>-<short commit>`, e.g. `4.6.2.0-bfcc0e6`.
 
 The GATK part identifies which release the locks belong to. The suffix exists
 because adding a lock for a new platform does not change the GATK version, and

@@ -24,7 +24,7 @@ description = "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python
 #
 # BUMP THIS when the packaged files change, e.g. when the aarch64-linux lock is
 # added: set it to the short hash of HEAD just before that commit.
-version = "4.6.2.0-ffe4631"
+version = "4.6.2.0-bfcc0e6"
 # Pure: these are git-tracked data files with no network or host dependency, so the
 # build is fully reproducible and safe to publish (see FLOX.md section 9.2).
 sandbox = "pure"
@@ -46,8 +46,10 @@ command = '''
   install -m 644 gatkPythonPackageArchive.zip      "$out/share/gatkcondaenv/"
 
   # Clears the spurious executable-stack flag on conda-forge's libtorch_cpu.so.
-  # Executable: the hook invokes it with the conda env's own python.
-  install -m 755 clear-execstack.py                "$out/share/gatkcondaenv/"
+  # NOT executable: the hook runs it as `"$gcnv/bin/python" clear-execstack.py`,
+  # never directly, so the exec bit buys nothing and only trips flox's "executables
+  # found outside of $out/bin" hint.
+  install -m 644 clear-execstack.py                "$out/share/gatkcondaenv/"
 '''
 
 [options]

@@ -71,9 +71,19 @@ materialize_gatk_gcnv_env() {
     # works; only the gCNV/NN Python tools are unavailable.
     if [ ! -f "$lock" ]; then
         echo "gatk: no gatkcondaenv lock for '$sys', Java tools work; the gCNV/NN Python"
-        echo "      tools need one. If '$sys' has a lock, install the assets package:"
-        echo "          flox install flox-labs/gatkcondaenv"
-        echo "      Otherwise the lock must be generated on this platform (see README)."
+        echo "      tools need one."
+        # Which advice is correct depends on WHY the lock is absent, so say which
+        # case this is rather than offering both and making the reader guess.
+        if [ "$assets" = "$FLOX_ENV/share/gatkcondaenv" ]; then
+            # Assets package is installed; it genuinely ships no lock for this
+            # platform. Installing it again would do nothing.
+            echo "      The assets package is installed but carries no lock for '$sys'."
+            echo "      One has to be generated on this platform (see README)."
+        else
+            echo "      Install the assets package, or, if it has no lock for '$sys'"
+            echo "      either, generate one on this platform (see README):"
+            echo "          flox install flox-labs/gatkcondaenv"
+        fi
         return 0
     fi
 
