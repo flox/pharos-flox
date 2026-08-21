@@ -1,14 +1,152 @@
-## GATK 4.6.2.0 — catalog-native Flox environment
-## Replaces wgs/gatk_4-6-2-0/Dockerfile (which wrapped the upstream
-## broadinstitute/gatk image). Same stock release, installed from the Flox
-## catalog at the exact pinned version.
+## GATK 4.6.2.0: catalog-native Flox environment (with gatkcondaenv)
+## Replaces wgs/gatk_4-6-2-0/Dockerfile, which was `FROM broadinstitute/gatk:4.6.2.0`.
+##
+## That base image ships TWO things: the GATK jar, and a conda Python environment
+## ("gatkcondaenv") that a handful of GATK tools shell out to. The jar comes from
+## the Flox catalog at the exact pinned version; the Python env is reproduced here,
+## materialized on first activation, so this environment has full parity with the
+## image it replaces rather than being jar-only.
+##
+## Why the Python env is needed: DetermineGermlineContigPloidy, GermlineCNVCaller,
+## PostprocessGermlineCNVCalls (germline CNV) and NVScoreVariants (neural-net
+## filtering) invoke a Python interpreter and `import gcnvkernel` (+ pymc / pytensor
+## / pytorch). Without gatkcondaenv those tools fail with "gcnvkernel could not be
+## imported"; the pure-Java tools (HaplotypeCaller, etc.) never touch Python.
 schema-version = "1.13.0"
 
 [install]
+# The Java tool, from the catalog, pinned to match gatkcondaenv / gcnvkernel
+# exactly (gcnvkernel is versioned in lockstep with the GATK jar).
 gatk.pkg-path = "gatk"
 gatk.version = "4.6.2.0"
+# The conda package manager used to materialize gatkcondaenv at runtime.
+micromamba.pkg-path = "micromamba"
+
+[hook]
+on-activate = '''
+# ---------------------------------------------------------------------------
+# Materialize gatkcondaenv (GATK's Python environment) once, into the persistent
+# per-environment cache. Everything here is idempotent and guarded by a sentinel,
+# so it runs on the *first* activation only; later activations are instant.
+#
+# WHY a conda env at all: GATK's gCNV / NVScoreVariants tools require gcnvkernel +
+# pymc/pytensor/pytorch at exact versions. Rebuilding that stack from nixpkgs is
+# possible but fragile (gcnvkernel is sensitive to pymc/pytensor versions), so we
+# reproduce the official conda env, the same one the GATK Docker image bakes in.
+#
+# WHY $FLOX_ENV_CACHE: it is the persistent, machine-local, per-environment store
+# (survives re-activation and rebuilds, is not committed). The ~3.7 GB conda env
+# belongs there, built once and reused, never in the git repo.
+# ---------------------------------------------------------------------------
+materialize_gatk_gcnv_env() {
+    local gcnv="$FLOX_ENV_CACHE/gatkcondaenv"
+
+    # Sentinel: a fully-built env ends with `touch .ready`. If it exists we are
+    # done, return immediately so normal activations cost nothing.
+    if [ -f "$gcnv/.ready" ]; then
+        return 0
+    fi
+
+    # The conda lock is per-platform (conda packages are architecture-specific,
+    # like every other build in this repo). Map the running system to the flox
+    # system name so we pick the matching committed lock.
+    local sys
+    case "$(uname -s)-$(uname -m)" in
+        Linux-x86_64)   sys=x86_64-linux ;;
+        Linux-aarch64)  sys=aarch64-linux ;;
+        Darwin-arm64)   sys=aarch64-darwin ;;
+        *)              sys="$(uname -s)-$(uname -m)" ;;
+    esac
+    local lock="$FLOX_ENV_PROJECT/gatkcondaenv.$sys.lock"
+
+    # If we do not have a lock for this platform yet, do not fail activation,
+    # plain GATK (Java) still works; only the gCNV/NN Python tools are unavailable.
+    if [ ! -f "$lock" ]; then
+        echo "gatk: no gatkcondaenv lock for '$sys' yet, Java tools work; the gCNV/NN"
+        echo "      Python tools need a lock generated on this platform (see README)."
+        return 0
+    fi
+
+    echo "gatk: materializing gatkcondaenv (GATK's Python env) on first run; ~2 GB download..."
+
+    # Scope BOTH the root prefix and the downloaded-package cache to the flox
+    # cache, so the linked env and the package tarballs live under $FLOX_ENV_CACHE
+    # and are removed by `flox delete`. MAMBA_ROOT_PREFIX alone is not enough:
+    # micromamba still defaults its package cache to the shared ~/.mamba/pkgs, so
+    # CONDA_PKGS_DIRS is what actually redirects the tarball cache here.
+    export MAMBA_ROOT_PREFIX="$FLOX_ENV_CACHE/mamba-root"
+    export CONDA_PKGS_DIRS="$FLOX_ENV_CACHE/mamba-root/pkgs"
+
+    # Create from the EXPLICIT lock, not the yml. The yml solve is single-threaded
+    # and takes ~5+ minutes on this env's exact pins; the lock is the pre-solved
+    # list of exact package URLs, so `--file <lock>` SKIPS solving entirely and
+    # just downloads/links the pinned packages. Reproducible and fast for users.
+    if ! micromamba create -y -p "$gcnv" --file "$lock"; then
+        echo "gatk: micromamba create failed; leaving gatkcondaenv unbuilt."
+        return 1
+    fi
+
+    # gcnvkernel is NOT a conda/PyPI package, GATK ships it inside the release as
+    # gatkPythonPackageArchive.zip. We committed that 119 KB archive here (rather
+    # than re-download GATK's 700 MB release just to extract it) and pip-install it
+    # into the freshly-created env, exactly as the official gatkcondaenv.yml does.
+    if ! "$gcnv/bin/pip" install --no-deps "$FLOX_ENV_PROJECT/gatkPythonPackageArchive.zip"; then
+        echo "gatk: gcnvkernel install failed."
+        return 1
+    fi
+
+    # conda-forge's libtorch_cpu.so requests an executable stack (GNU_STACK RWE),
+    # which hardened/container kernels refuse, torch then fails to import. Clear
+    # the (spurious) executable-stack flag so NVScoreVariants works everywhere.
+    # Run with the env's own python: the fix only reads/writes ELF headers, so it
+    # never imports torch (which would be the thing that is broken).
+    "$gcnv/bin/python" "$FLOX_ENV_PROJECT/clear-execstack.py" "$gcnv"
+
+    # Mark complete only after every step succeeded, so a partial/aborted build
+    # is retried on the next activation instead of being trusted.
+    touch "$gcnv/.ready"
+    echo "gatk: gatkcondaenv ready, gCNV and NVScoreVariants tools are enabled."
+}
+
+materialize_gatk_gcnv_env
+
+# Put the materialized gatkcondaenv's bin FIRST on PATH, on every activation.
+#
+# WHY this is needed: GATK embeds no Python interpreter. When a Python-based tool
+# runs, GATK's PythonScriptExecutor invokes whatever `python` is on PATH and
+# imports gcnvkernel from it. So this conda interpreter must be on PATH whenever
+# the env is active (exactly as the official image does it, there `conda activate
+# gatk` puts the same interpreter on PATH).
+#
+# WHY it lives here in [hook] and NOT only in [profile]: [profile] is sourced only
+# by *interactive* shells. GATK is very commonly run non-interactively via
+# `flox activate -- gatk ...`, and that mode does not source [profile], so a PATH
+# export there alone would not apply (verified). on-activate runs for EVERY
+# activation mode, so setting PATH here covers both interactive shells and
+# `-- <cmd>`. This line runs every activation (the one-time build above is guarded
+# by its sentinel; the PATH must be re-set for each new shell). If no gatkcondaenv
+# was built (no lock for this platform) the dir simply does not exist and is
+# harmlessly ignored, leaving the Java tools fully working.
+export PATH="$FLOX_ENV_CACHE/gatkcondaenv/bin:$PATH"
+'''
+
+[profile]
+common = '''
+# Re-assert gatkcondaenv/bin on PATH for INTERACTIVE shells.
+#
+# The [hook] above already exports this for every activation mode (including
+# `flox activate -- gatk ...`), so it is the functional guarantee. This profile
+# line is the interactive-shell counterpart: [profile] is sourced when you drop
+# into the env with a bare `flox activate` and work in it by hand, so keeping the
+# export here makes the behavior obvious to anyone reading the manifest and gives
+# a belated re-assert after shell rc files run. Verify in the shell with
+# `which python`, it should resolve to .flox/cache/gatkcondaenv/bin/python.
+export PATH="$FLOX_ENV_CACHE/gatkcondaenv/bin:$PATH"
+'''
 
 [options]
+# gCNV Python tools are validated on x86_64-linux here; aarch64 locks are
+# generated on that hardware (see README). Java-only GATK works on all three.
 systems = [
   "x86_64-linux",
   "aarch64-linux",

@@ -5,3 +5,8 @@ result-*
 *.sw[a-p]
 *~
 .DS_Store
+
+# FloxHub push artifacts (local publish state, not repo content).
+# Must be **/-globbed: a bare ".flox/env.lock" anchors to the repo root and would
+# miss the per-env locks under wgs/*/.flox/ and build/*/.flox/.
+**/.flox/env.lock
