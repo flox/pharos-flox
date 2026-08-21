@@ -16,13 +16,22 @@
   bzip2,
   pypy27,
 }:
-# gcc13 is the oldest compiler still shipped in the nixpkgs base (gcc<=12 pruned).
-# It builds bundled boost 1.58 fine; nixpkgs removed the `gccNStdenv` adapters, so
-# swap the compiler into the default stdenv explicitly.
+# Compiler selection is per-platform:
+#
+#   Linux  - gcc13, the oldest compiler still shipped in the nixpkgs base
+#            (gcc<=12 pruned). nixpkgs removed the `gccNStdenv` adapters, so swap
+#            the compiler into the default stdenv explicitly.
+#   Darwin - the native clang stdenv. gcc13 must NOT be used here: strelka's
+#            bundled boost 1.58 bootstraps its own 2014-era jam engine with `cc`,
+#            and gcc13 on aarch64-darwin miscompiles it. The resulting bjam
+#            segfaults while loading boostcpp.jam, so boost never builds and cmake
+#            reports only "Failed to build boost library 1.58.0" with an empty
+#            boost.build.error.txt (bjam died before writing to it). Built by
+#            clang, the same jam engine and boost build cleanly.
 let
-  gcc13Stdenv = overrideCC stdenv gcc13;
+  buildStdenv = if stdenv.hostPlatform.isDarwin then stdenv else overrideCC stdenv gcc13;
 in
-gcc13Stdenv.mkDerivation rec {
+buildStdenv.mkDerivation rec {
   pname = "strelka";
   version = "2.9.10";
 
@@ -52,7 +61,70 @@ gcc13Stdenv.mkDerivation rec {
   # of htslib/samtools, where a C++ header would be a hard error.
   CXXFLAGS = "-include limits -include cstdint -include memory";
 
+  # boost 1.58's jam engine (modules/path.c) calls file_query() without declaring
+  # it. clang 16+ makes implicit function declarations a hard error (C99/C23), which
+  # aborts boost's bootstrap.sh before bjam is ever produced. Demote it to a warning
+  # for the whole build; strelka's own sources are unaffected.
+  NIX_CFLAGS_COMPILE = "-Wno-implicit-function-declaration";
+
   preConfigure = ''
+    # Bundled boost 1.58 predates C++17 and still uses std::auto_ptr, which libc++
+    # removed in C++17 (libstdc++ only deprecates it, so the Linux/gcc path is
+    # unaffected). clang defaults to gnu++17, so pin the boost bootstrap to C++11 --
+    # the same standard strelka compiles its own sources with. Boost.Build does not
+    # read CXXFLAGS from the environment, so the flag has to go on the bjam command
+    # line that strelka's boost.cmake assembles.
+    substituteInPlace src/cmake/boost.cmake \
+      --replace-fail 'set (BJAM_OPTIONS ''${BJAM_OPTIONS} "toolset=clang")' \
+                     'set (BJAM_OPTIONS ''${BJAM_OPTIONS} "toolset=clang" "cxxflags=-std=c++11")'
+
+    # The bundled bgzf_extras Makefile hardcodes `CC = gcc`. The clang stdenv has no
+    # `gcc` on PATH (only cc/clang), so pass CC on the make command line, where it
+    # overrides the Makefile assignment.
+    substituteInPlace redist/CMakeLists.txt \
+      --replace-fail 'COMMAND $(MAKE) -C "''${BGZFX_DIR}" all 2>| bgzf_extras.build.log' \
+                     'COMMAND $(MAKE) -C "''${BGZFX_DIR}" CC=cc all 2>| bgzf_extras.build.log'
+
+    # boost 1.58's mpl::integral_c<E, 0> eagerly instantiates its `prior` member as
+    # integral_c<E, static_cast<E>(-1)>. For an unscoped enum with no fixed underlying
+    # type, -1 is outside the enum's value range, so the cast is not a constant
+    # expression and clang rejects it; gcc accepts it. This reaches strelka through
+    # Boost.Test's use of boost::numeric conversion traits, and breaks every unit-test
+    # translation unit. Giving the three boost::numeric mixture enums a fixed
+    # underlying type makes the cast well-defined and the whole chain valid.
+    bstmp=$(mktemp -d)
+    tar xjf redist/boost_1_58_0_subset.tar.bz2 -C "$bstmp"
+    for e in sign_mixture udt_builtin_mixture int_float_mixture; do
+      substituteInPlace "$bstmp/boost_1_58_0_subset/boost/numeric/conversion/$e"_enum.hpp \
+        --replace-fail "enum $e"_enum "enum $e"_enum" : int"
+    done
+    tar cjf redist/boost_1_58_0_subset.tar.bz2 -C "$bstmp" boost_1_58_0_subset
+    rm -rf "$bstmp"
+
+    # Bundled rapidjson 1.1.0 defines GenericStringRef::operator= with a body that
+    # assigns to its const members. clang rejects it when the class is instantiated;
+    # gcc never reaches it. Nothing in strelka assigns a GenericStringRef, so delete
+    # the operator outright. rapidjson is only unpacked during the build, so the
+    # redist tarball itself has to be patched and repacked here.
+    rjtmp=$(mktemp -d)
+    tar xjf redist/rapidjson-1.1.0.tar.bz2 -C "$rjtmp"
+    substituteInPlace "$rjtmp/rapidjson-1.1.0/include/rapidjson/document.h" \
+      --replace-fail 'GenericStringRef& operator=(const GenericStringRef& rhs) { s = rhs.s; length = rhs.length; }' \
+                     'GenericStringRef& operator=(const GenericStringRef& rhs) = delete;'
+    tar cjf redist/rapidjson-1.1.0.tar.bz2 -C "$rjtmp" rapidjson-1.1.0
+    rm -rf "$rjtmp"
+
+    # HtsMergeStreamer::next() pops the stream queue and then calls getCurrentPos(),
+    # which is _streamQueue.top() -- undefined when that pop emptied the queue, i.e.
+    # on the last record of every region. libstdc++ happens to hand back the slot
+    # just popped, so the comparison trivially passes and Linux never notices; with
+    # libc++, clang proves the empty branch unreachable and emits a trap, so strelka2
+    # dies with SIGTRAP the moment a stream is exhausted. Only run the ordering check
+    # while a current record actually exists.
+    substituteInPlace src/c++/lib/starling_common/HtsMergeStreamer.cpp \
+      --replace-fail 'if (getCurrentPos() < last.pos)' \
+                     'if ((! _streamQueue.empty()) && (getCurrentPos() < last.pos))'
+
     # strelka's find_package(PythonInterp) searches for python2.7/python2/python;
     # without these it silently grabs the sandbox python3 and fails to byte-compile
     # the bundled Python 2 sources. Point those names at pypy.
