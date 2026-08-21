@@ -7,6 +7,7 @@
 #
 # Build with:  flox build strelka
 {
+  lib,
   stdenv,
   overrideCC,
   gcc13,
@@ -63,9 +64,12 @@ buildStdenv.mkDerivation rec {
 
   # boost 1.58's jam engine (modules/path.c) calls file_query() without declaring
   # it. clang 16+ makes implicit function declarations a hard error (C99/C23), which
-  # aborts boost's bootstrap.sh before bjam is ever produced. Demote it to a warning
-  # for the whole build; strelka's own sources are unaffected.
-  NIX_CFLAGS_COMPILE = "-Wno-implicit-function-declaration";
+  # aborts boost's bootstrap.sh before bjam is ever produced. Demote it to a warning.
+  #
+  # Darwin only: gcc13 still treats this as a warning, so the Linux build never
+  # needed the flag. Scoping it to the platform that does keeps the reason for its
+  # existence legible instead of looking like a blanket workaround.
+  NIX_CFLAGS_COMPILE = lib.optionalString stdenv.hostPlatform.isDarwin "-Wno-implicit-function-declaration";
 
   preConfigure = ''
     # Bundled boost 1.58 predates C++17 and still uses std::auto_ptr, which libc++
