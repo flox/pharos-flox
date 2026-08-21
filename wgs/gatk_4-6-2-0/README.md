@@ -156,8 +156,8 @@ activation still downloads ~1.8 GB of conda packages from anaconda.org.
 ## Per-platform locks
 
 Conda packages are architecture-specific, so the lock is per platform, named
-`gatkcondaenv.<system>.lock`. `x86_64-linux` and `aarch64-darwin` are committed and
-validated here. The hook maps the running system to the matching lock; if no lock
+`gatkcondaenv.<system>.lock`. All three target systems are committed and validated:
+`x86_64-linux`, `aarch64-linux` and `aarch64-darwin`. The hook maps the running system to the matching lock; if no lock
 exists for the current platform it says so and skips the Python env, leaving the Java
 tools fully working. To add a platform, generate its lock on that hardware:
 
@@ -167,7 +167,7 @@ micromamba env export --explicit -p <path-to-gatkcondaenv> > gatkcondaenv.<syste
 ```
 
 Target systems for this repo are `x86_64-linux`, `aarch64-linux`, and
-`aarch64-darwin`. `aarch64-linux` is still outstanding.
+`aarch64-darwin`, and each has a lock.
 
 ### aarch64-darwin is a port of the spec, not a re-export
 
@@ -187,6 +187,30 @@ The last two are not cosmetic: `pysam` is imported by `scorevariants/readers.py`
 `encoders.py`, and `vcf` by `gcnvkernel/postprocess/viterbi_segmentation.py`, so
 neither could simply be dropped. Every other package holds the exact version the
 `x86_64-linux` lock resolved to.
+
+### aarch64-linux is a smaller port of the same spec
+
+`linux-aarch64` has the same MKL problem as Apple Silicon and none of the rest of
+it. The adapted spec is committed as `gatkcondaenv.aarch64-linux.yml`. Every pin
+was checked against what conda-forge and bioconda publish for `linux-aarch64`
+before solving, and only three lines needed to change:
+
+| Upstream pin | On `linux-aarch64` | Why |
+|---|---|---|
+| `conda-forge::blas=1.0=mkl` | dropped | MKL is Intel-only; conda-forge has **0** `linux-aarch64` builds of it |
+| `conda-forge::pytorch=2.1.0=*mkl*100` | `pytorch=2.1.0` | the only 2.1.0 published here is `cpu_generic_py310*`, which links OpenBLAS |
+| `conda-forge::scipy=1.11.4` | `scipy=1.11.3` | 1.11.4 was never built for `linux-aarch64`; 1.11.3 is the newest 1.11.x that was |
+
+Note what did *not* change. The two bioconda substitutions the macOS port needs,
+`pysam 0.22.1` and the `pyvcf3` fork, are **not** carried over: `linux-aarch64`
+has builds of `pysam 0.22.0` and `pyvcf 0.6.8` at the exact versions the
+`x86_64-linux` lock resolved to, so this platform keeps them. A port to one
+non-x86 platform is not a template for the next; each pin has to be re-checked
+against that platform's own channel contents.
+
+Unlike macOS, this env is self-contained: the lock pulls conda-forge's
+`gcc`/`gxx` 12.4.0 and `sysroot_linux-aarch64`, so PyTensor's runtime C
+compilation works with no system toolchain, exactly as on `x86_64-linux`.
 
 ### macOS prerequisite: Xcode Command Line Tools
 
@@ -241,17 +265,60 @@ The same clean-run check on `aarch64-darwin`:
 | Python stack imports | `gcnvkernel`, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0, pysam 0.22.1, `vcf` (pyvcf3) |
 | PyTensor C backend | **requires Xcode CLT**; without it, use `PYTENSOR_FLAGS=cxx=` (see above) |
 
+And on `aarch64-linux`:
+
+| Check | Result |
+|---|---|
+| conda env materializes from the lock | 267 packages installed, matching the 267 URLs in the lock |
+| gcnvkernel installs from the archive | `gatkpythonpackages-0.2` wheel built and installed |
+| exec-stack fix | no-op, 0 libraries, and correctly so; see `build/gatkcondaenv/README.md` |
+| `which python` (via `flox activate -- cmd`) | resolves to `.flox/cache/gatkcondaenv/bin/python` |
+| Python stack imports | `gcnvkernel` 0.9, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0.post3, pysam 0.22.0, `vcf` 0.6.8, numpy 1.26.2, scipy 1.11.3, h5py 3.10.0, sklearn 1.3.2 |
+| PyTensor C backend | compiles; `config.cxx` is the env's own `g++` and the function VM is `pytensor.link.c.cvm.CVM` |
+| assets resolve from the package | hook read `$FLOX_ENV/share/gatkcondaenv`, proven by materializing when no in-tree lock existed |
+| **gCNV end to end** | `DetermineGermlineContigPloidy` on GATK's own 20-sample `gcnv-sim-data`: **96 of 100 contig-ploidy calls match GATK's committed expected output** |
+
 The exec-stack fix and the `which python` check are the two that would silently pass
 a naive smoke test and then fail a real gCNV run, so both are verified explicitly.
+
+### About that gCNV run
+
+It is the first real gCNV run recorded for this repo on any platform, so it is
+worth being precise about what it does and does not establish.
+
+The inputs are GATK's own simulated cohort from tag 4.6.2.0
+(`src/test/resources/.../copynumber/gcnv-sim-data/`), 20 samples over contigs
+1, 2, 3, X and Y, and the comparison is against the `contig-ploidy-calls/`
+committed beside them. All 60 autosomal calls, all 20 Y calls and all 11 male X
+calls match. The four misses are all the same shape, X called 3 where 2 is
+expected, in four of the female samples.
+
+That residual is under-training, not a numerical problem with the platform: the
+run used roughly one-fifth of the default iteration counts, and a platform-level
+BLAS or CPU-dispatch fault would not leave every autosome and every Y correct
+while missing only the highest-variance parameter. The reduced settings were
+`--min-training-epochs 5 --max-training-epochs 20 --max-advi-iter-first-epoch 300
+--max-advi-iter-subsequent-epochs 150 --num-thermal-advi-iters 250
+--convergence-snr-averaging-window 100 --log-emission-sampling-rounds 20`.
+
+**The machine this was verified on is an emulated aarch64 VM (QEMU), roughly 40
+to 70 times slower than native ARM.** Two consequences. First, no timing here says
+anything about aarch64 performance, which is why none is quoted. Second, QEMU
+advertises a maximal CPU feature set, so libraries that dispatch on CPU features
+at runtime (OpenBLAS kernel selection, torch) may take different code paths on a
+real Graviton or Apple Silicon host. The lock and the substitutions are validated;
+"validated on native aarch64 hardware" is a claim nobody has earned yet.
 
 ---
 
 ## What is committed here, and what is not
 
-Committed: the manifest, the `x86_64-linux` and `aarch64-darwin` locks, the
-`gatkcondaenv.macos.yml` spec those Apple-Silicon substitutions live in, the 119 KB
-gcnvkernel archive,
-`clear-execstack.py`, and this README. Not committed: the materialized conda env,
+Committed: the manifest, all three locks (`x86_64-linux`, `aarch64-linux`,
+`aarch64-darwin`), the `gatkcondaenv.macos.yml` and
+`gatkcondaenv.aarch64-linux.yml` specs the two ported locks were solved from, the
+119 KB gcnvkernel archive, `clear-execstack.py`, and this README. These are the
+in-tree fallback copies; the canonical set is the one shipped by the
+`flox-labs/gatkcondaenv` package (see above), and the two are kept identical. Not committed: the materialized conda env,
 which lives under `$FLOX_ENV_CACHE` (built once per machine, reused after, and
 removed by `flox delete`). On disk that cache is about 5 GB: the env proper is
 ~3.8 GB and micromamba's package cache (scoped here via `CONDA_PKGS_DIRS`) holds

@@ -41,11 +41,17 @@ Contains the ~200 KB of *metadata*:
 
 | File | Purpose |
 |---|---|
-| `gatkcondaenv.x86_64-linux.lock` | explicit conda lock, Linux |
+| `gatkcondaenv.x86_64-linux.lock` | explicit conda lock, Intel Linux |
+| `gatkcondaenv.aarch64-linux.lock` | explicit conda lock, ARM Linux |
 | `gatkcondaenv.aarch64-darwin.lock` | explicit conda lock, Apple Silicon |
 | `gatkcondaenv.macos.yml` | the spec the darwin lock was solved from, for regeneration/audit |
+| `gatkcondaenv.aarch64-linux.yml` | the spec the ARM Linux lock was solved from, likewise |
 | `gatkPythonPackageArchive.zip` | gcnvkernel + scorevariants, pip-installed by the hook |
-| `clear-execstack.py` | clears the spurious exec-stack flag on `libtorch_cpu.so` |
+| `clear-execstack.py` | clears the spurious exec-stack flag on `libtorch_cpu.so` (a no-op on platforms whose torch build does not set it, see below) |
+
+Both aarch64 specs exist because GATK's own `gatkcondaenv.yml.template` pins
+Intel-only MKL and cannot be solved unchanged off x86. There is no spec for
+`x86_64-linux`: that lock solves from GATK's template as published.
 
 It does **not** contain the ~1.8 GB conda environment itself. First activation
 still downloads the pinned packages from anaconda.org. Vendoring the built
@@ -56,7 +62,7 @@ sealed artifact.
 
 ## Versioning
 
-`version` is `<GATK release>-<short commit>`, e.g. `4.6.2.0-bfcc0e6`.
+`version` is `<GATK release>-<short commit>`, e.g. `4.6.2.0-0000e63`.
 
 The GATK part identifies which release the locks belong to. The suffix exists
 because adding a lock for a new platform does not change the GATK version, and
@@ -78,6 +84,17 @@ The locks are generated per platform, on that platform, as described in
 `wgs/gatk_4-6-2-0/README.md`. This directory is the source of truth; when a new
 lock is generated, add it here and bump `version` in the build.
 
-`aarch64-linux` has no lock yet. It is listed in `[options].systems` so the
-package builds and installs there, and the hook reports the missing lock and
-leaves the Java tools working.
+All three target systems now have a lock. The hook's "no lock for this platform"
+branch therefore no longer fires for any of them; it remains for a fourth system
+nobody has generated one on.
+
+### The exec-stack fix is platform-conditional in effect
+
+`clear-execstack.py` reports **0 libraries on `aarch64-linux`, and that is
+correct**, not a failure. The flag it clears is set by conda-forge's
+`pytorch-2.1.0-cpu_mkl_*` build that the `x86_64-linux` lock pins; the only
+pytorch 2.1.0 published for `linux-aarch64` is `cpu_generic_*`, whose
+`libtorch_cpu.so` carries `PT_GNU_STACK` as `RW-`. Every one of the 2,264 64-bit
+ELFs in the materialized ARM Linux env was checked: none has the `PF_X` bit. The
+script's detection path was confirmed working on that same env by setting the bit
+on a copy, which it then found and cleared.

@@ -24,7 +24,7 @@ description = "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python
 #
 # BUMP THIS when the packaged files change, e.g. when the aarch64-linux lock is
 # added: set it to the short hash of HEAD just before that commit.
-version = "4.6.2.0-bfcc0e6"
+version = "4.6.2.0-0000e63"
 # Pure: these are git-tracked data files with no network or host dependency, so the
 # build is fully reproducible and safe to publish (see FLOX.md section 9.2).
 sandbox = "pure"
@@ -34,12 +34,16 @@ command = '''
   # Per-platform explicit conda locks. The consuming hook selects one by mapping
   # $(uname -s)-$(uname -m) to the flox system name.
   install -m 644 gatkcondaenv.x86_64-linux.lock    "$out/share/gatkcondaenv/"
+  install -m 644 gatkcondaenv.aarch64-linux.lock   "$out/share/gatkcondaenv/"
   install -m 644 gatkcondaenv.aarch64-darwin.lock  "$out/share/gatkcondaenv/"
 
-  # The Apple-Silicon-adapted spec the aarch64-darwin lock was solved from. Not
-  # used at runtime; shipped so the lock can be regenerated or audited from the
-  # package alone, without the repo.
+  # The ported specs the two aarch64 locks were solved from, each dropping the
+  # Intel-only MKL pins that GATK's own template carries. Not used at runtime;
+  # shipped so a lock can be regenerated or audited from the package alone,
+  # without the repo. There is no spec for x86_64-linux because that lock solves
+  # from GATK's unmodified template.
   install -m 644 gatkcondaenv.macos.yml            "$out/share/gatkcondaenv/"
+  install -m 644 gatkcondaenv.aarch64-linux.yml    "$out/share/gatkcondaenv/"
 
   # gcnvkernel + scorevariants. Not a conda or PyPI package: GATK ships it inside
   # its release, and the hook pip-installs it into the materialized conda env.
