@@ -10,11 +10,41 @@
     "options": {
       "systems": [
         "x86_64-linux",
-        "aarch64-linux"
+        "aarch64-linux",
+        "aarch64-darwin"
       ]
     }
   },
   "packages": [
+    {
+      "attr_path": "pypy27",
+      "broken": false,
+      "derivation": "/nix/store/l7zl9b191ci5j65w89kqfnr7mjrnvc6a-pypy-7.3.19.drv",
+      "description": "Fast, compliant alternative implementation of the Python language (2.7)",
+      "install_id": "pypy27",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "pypy-7.3.19",
+      "pname": "pypy27",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T04:56:14.015965Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.3.19",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/4xs7xk9aij7ahg9v25c3469y1q028r27-pypy-7.3.19"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
     {
       "attr_path": "pypy27",
       "broken": false,

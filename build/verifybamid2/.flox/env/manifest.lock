@@ -10,11 +10,41 @@
     "options": {
       "systems": [
         "x86_64-linux",
-        "aarch64-linux"
+        "aarch64-linux",
+        "aarch64-darwin"
       ]
     }
   },
   "packages": [
+    {
+      "attr_path": "htslib",
+      "broken": false,
+      "derivation": "/nix/store/8jwcs1gjvami9lil0mga4bl609a77ih0-htslib-1.22.drv",
+      "description": "C library for reading/writing high-throughput sequencing data",
+      "install_id": "htslib",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "htslib-1.22",
+      "pname": "htslib",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T04:55:49.182290Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.22",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/v022qxplrgrsr0ndmvlh5gla7mq3rdsg-htslib-1.22"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
     {
       "attr_path": "htslib",
       "broken": false,
