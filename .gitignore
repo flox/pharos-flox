@@ -1,0 +1,9 @@
+# The build/ subdirectories are standalone, independently-versioned Flox build
+# repos — each has its own .git and is pushed to its own remote so it can be
+# cloned and `flox publish`-ed on its own (see README.md, "publish under your own
+# Flox org namespace"). They are intentionally NOT tracked by this repo; manage
+# them separately.
+build/
+
+# Flox build outputs (regenerable via `flox build`)
+result-*

@@ -1,0 +1,82 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.13.0",
+    "install": {
+      "bwa": {
+        "pkg-path": "bwa",
+        "version": "0.7.17"
+      }
+    },
+    "options": {
+      "systems": [
+        "x86_64-darwin",
+        "x86_64-linux"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "bwa",
+      "broken": false,
+      "derivation": "/nix/store/qlagzhn1s02h1kvlsc9l9xq2a55vsx53-bwa-0.7.17.drv",
+      "description": "A software package for mapping low-divergent sequences against a large reference genome, such as the human genome",
+      "install_id": "bwa",
+      "license": "GPL-3.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=60c1d71f2ba4c80178ec84523c2ca0801522e0a6",
+      "name": "bwa-0.7.17",
+      "pname": "bwa",
+      "rev": "60c1d71f2ba4c80178ec84523c2ca0801522e0a6",
+      "rev_count": 466020,
+      "rev_date": "2023-03-19T21:52:28Z",
+      "scrape_date": "2024-06-13T20:48:18Z",
+      "stabilities": [
+        "stable",
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.7.17",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/7vq3rbjp2bmrla9kgl0x7cfm361ai1d4-bwa-0.7.17"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "bwa",
+      "broken": false,
+      "derivation": "/nix/store/dd0l64g81l4381wqfpxamfnwd6jhfad8-bwa-0.7.17.drv",
+      "description": "A software package for mapping low-divergent sequences against a large reference genome, such as the human genome",
+      "install_id": "bwa",
+      "license": "GPL-3.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=60c1d71f2ba4c80178ec84523c2ca0801522e0a6",
+      "name": "bwa-0.7.17",
+      "pname": "bwa",
+      "rev": "60c1d71f2ba4c80178ec84523c2ca0801522e0a6",
+      "rev_count": 466020,
+      "rev_date": "2023-03-19T21:52:28Z",
+      "scrape_date": "2024-06-13T20:48:18Z",
+      "stabilities": [
+        "stable",
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.7.17",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ifvh1rb1djnlh891w4dj23hpam8w4h6l-bwa-0.7.17"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}

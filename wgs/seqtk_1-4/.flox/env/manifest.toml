@@ -1,0 +1,16 @@
+## seqtk 1.4 — catalog-native Flox environment
+## Replaces wgs/seqtk_1-4/Dockerfile. Same stock upstream tool, installed from
+## the Flox catalog at the exact pinned version instead of compiled from source.
+schema-version = "1.13.0"
+
+[install]
+seqtk.pkg-path = "seqtk"
+seqtk.version = "1.4"
+
+[options]
+systems = [
+  "aarch64-darwin",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "x86_64-linux",
+]

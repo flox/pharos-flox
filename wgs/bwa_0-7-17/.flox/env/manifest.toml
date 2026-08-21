@@ -1,0 +1,18 @@
+## BWA 0.7.17 — catalog-native Flox environment
+## Replaces wgs/bwa_0-7-17/Dockerfile. Same stock upstream tool, installed from
+## the Flox catalog at the exact pinned version instead of compiled from source.
+##
+## NOTE: bwa@0.7.17 in the catalog is x86_64 only. For aarch64 the catalog's
+## nearest is bwa@0.7.19 — add it with a systems-scoped descriptor if aarch64
+## support is required.
+schema-version = "1.13.0"
+
+[install]
+bwa.pkg-path = "bwa"
+bwa.version = "0.7.17"
+
+[options]
+systems = [
+  "x86_64-darwin",
+  "x86_64-linux",
+]

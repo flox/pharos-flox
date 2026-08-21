@@ -1,0 +1,21 @@
+## VerifyBamID2 1.0.5 — runtime Flox environment
+## Installs the verifybamid2 package built + published from the build repo at
+## floxified/build/verifybamid2 (verifybamid2 is not in the public catalog).
+##
+## Resolves only AFTER a maintainer runs `flox publish -o flox-labs verifybamid2`.
+## To finalize this env post-publish:  flox install -d . flox-labs/verifybamid2
+##
+## The binary is `VerifyBamID`; bundled SVD reference panels live under the
+## package's share tree at $FLOX_ENV/resource (e.g. --SVDPrefix
+## $FLOX_ENV/resource/1000g.phase3.100k.b38.vcf.gz.dat).
+schema-version = "1.13.0"
+
+[install]
+verifybamid2.pkg-path = "flox-labs/verifybamid2"
+verifybamid2.version = "1.0.5"
+
+[options]
+systems = [
+  "aarch64-linux",
+  "x86_64-linux",
+]

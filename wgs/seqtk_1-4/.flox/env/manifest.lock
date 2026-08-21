@@ -1,0 +1,146 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.13.0",
+    "install": {
+      "seqtk": {
+        "pkg-path": "seqtk",
+        "version": "1.4"
+      }
+    },
+    "options": {
+      "systems": [
+        "aarch64-darwin",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "x86_64-linux"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "seqtk",
+      "broken": false,
+      "derivation": "/nix/store/m14ykg0ljgxkkrhh1pdslzz20lpdb1zc-seqtk-1.4.drv",
+      "description": "Toolkit for processing sequences in FASTA/Q formats",
+      "install_id": "seqtk",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "name": "seqtk-1.4",
+      "pname": "seqtk",
+      "rev": "d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "rev_count": 724962,
+      "rev_date": "2024-12-19T23:01:11Z",
+      "scrape_date": "2024-12-23T03:54:12Z",
+      "stabilities": [
+        "stable",
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.4",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/9i12s32592yq6y41srl8iw18ijlf2qlv-seqtk-1.4"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "seqtk",
+      "broken": false,
+      "derivation": "/nix/store/lmmmq2x88cxqkkp2njkfcy112x9nd8y2-seqtk-1.4.drv",
+      "description": "Toolkit for processing sequences in FASTA/Q formats",
+      "install_id": "seqtk",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "name": "seqtk-1.4",
+      "pname": "seqtk",
+      "rev": "d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "rev_count": 724962,
+      "rev_date": "2024-12-19T23:01:11Z",
+      "scrape_date": "2024-12-23T03:54:12Z",
+      "stabilities": [
+        "stable",
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.4",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/24gv8qy3zjjlcpx71dy6jzz7a7liqy9v-seqtk-1.4"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "seqtk",
+      "broken": false,
+      "derivation": "/nix/store/y1vxfdpqrqw1bffjxyckdrzf192943s7-seqtk-1.4.drv",
+      "description": "Toolkit for processing sequences in FASTA/Q formats",
+      "install_id": "seqtk",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "name": "seqtk-1.4",
+      "pname": "seqtk",
+      "rev": "d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "rev_count": 724962,
+      "rev_date": "2024-12-19T23:01:11Z",
+      "scrape_date": "2024-12-23T03:54:12Z",
+      "stabilities": [
+        "stable",
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.4",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/6ydvxq3vb4bdnrvrs3d59swdc8569fdh-seqtk-1.4"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "seqtk",
+      "broken": false,
+      "derivation": "/nix/store/38i2hkw6sj2p2mx40dix7nblm36hj6gk-seqtk-1.4.drv",
+      "description": "Toolkit for processing sequences in FASTA/Q formats",
+      "install_id": "seqtk",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "name": "seqtk-1.4",
+      "pname": "seqtk",
+      "rev": "d70bd19e0a38ad4790d3913bf08fcbfc9eeca507",
+      "rev_count": 724962,
+      "rev_date": "2024-12-19T23:01:11Z",
+      "scrape_date": "2024-12-23T03:54:12Z",
+      "stabilities": [
+        "stable",
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "1.4",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/1ns3llwhh471q1c54x3df6jsdmals7ad-seqtk-1.4"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}

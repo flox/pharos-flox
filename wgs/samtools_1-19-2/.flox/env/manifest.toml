@@ -1,0 +1,16 @@
+## samtools 1.19.2 — catalog-native Flox environment
+## Replaces wgs/samtools_1-19-2/Dockerfile. Same stock upstream tool, installed
+## from the Flox catalog at the exact pinned version instead of compiled from source.
+schema-version = "1.13.0"
+
+[install]
+samtools.pkg-path = "samtools"
+samtools.version = "1.19.2"
+
+[options]
+systems = [
+  "aarch64-darwin",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "x86_64-linux",
+]

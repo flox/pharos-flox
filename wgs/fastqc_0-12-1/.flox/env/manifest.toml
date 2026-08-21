@@ -1,0 +1,17 @@
+## FastQC 0.12.1 — catalog-native Flox environment
+## Replaces wgs/fastqc_0-12-1/Dockerfile. Same stock upstream tool (bundles its
+## own JRE dependency via the catalog) installed at the exact pinned version
+## instead of downloading the prebuilt zip.
+schema-version = "1.13.0"
+
+[install]
+fastqc.pkg-path = "fastqc"
+fastqc.version = "0.12.1"
+
+[options]
+systems = [
+  "aarch64-darwin",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "x86_64-linux",
+]

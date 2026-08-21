@@ -1,0 +1,17 @@
+## cutadapt 5.2 — runtime Flox environment
+## Installs the cutadapt package built + published from the build repo at
+## floxified/build/cutadapt (cutadapt is not in the public catalog).
+##
+## Resolves only AFTER a maintainer runs `flox publish -o flox-labs cutadapt`.
+## To finalize this env post-publish:  flox install -d . flox-labs/cutadapt
+schema-version = "1.13.0"
+
+[install]
+cutadapt.pkg-path = "flox-labs/cutadapt"
+cutadapt.version = "5.2"
+
+[options]
+systems = [
+  "aarch64-linux",
+  "x86_64-linux",
+]

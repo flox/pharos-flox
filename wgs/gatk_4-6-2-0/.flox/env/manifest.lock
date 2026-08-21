@@ -1,0 +1,142 @@
+{
+  "lockfile-version": 1,
+  "manifest": {
+    "schema-version": "1.13.0",
+    "install": {
+      "gatk": {
+        "pkg-path": "gatk",
+        "version": "4.6.2.0"
+      }
+    },
+    "options": {
+      "systems": [
+        "aarch64-darwin",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "x86_64-linux"
+      ]
+    }
+  },
+  "packages": [
+    {
+      "attr_path": "gatk",
+      "broken": false,
+      "derivation": "/nix/store/j5gnpsw44ldl2gsv3jqff2mq18r90jkh-gatk-4.6.2.0.drv",
+      "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
+      "install_id": "gatk",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "name": "gatk-4.6.2.0",
+      "pname": "gatk",
+      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+      "rev_count": 1027867,
+      "rev_date": "2026-07-05T04:06:12Z",
+      "scrape_date": "2026-07-06T03:12:55.986294Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.6.2.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/j1iv3f6q70ad0rlw25w8kjmvlakg0by2-gatk-4.6.2.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gatk",
+      "broken": false,
+      "derivation": "/nix/store/jq3jcf98xh3schfivbrmw0zvha4p7ydh-gatk-4.6.2.0.drv",
+      "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
+      "install_id": "gatk",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "name": "gatk-4.6.2.0",
+      "pname": "gatk",
+      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+      "rev_count": 1027867,
+      "rev_date": "2026-07-05T04:06:12Z",
+      "scrape_date": "2026-07-06T03:41:23.001926Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.6.2.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/29g8314w5qcrlzh3h7c6d22bqm189zgv-gatk-4.6.2.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gatk",
+      "broken": false,
+      "derivation": "/nix/store/vhipvk2qfnqxiij4m3lcb46mis1dap18-gatk-4.6.2.0.drv",
+      "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
+      "install_id": "gatk",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "name": "gatk-4.6.2.0",
+      "pname": "gatk",
+      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+      "rev_count": 1027867,
+      "rev_date": "2026-07-05T04:06:12Z",
+      "scrape_date": "2026-07-06T04:09:01.481116Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.6.2.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/v2kqvq9g48c1nfzn4xgcayvhpys2fz2p-gatk-4.6.2.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gatk",
+      "broken": false,
+      "derivation": "/nix/store/z8lrij251qs7wpisn63qvqjmdin3l59j-gatk-4.6.2.0.drv",
+      "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
+      "install_id": "gatk",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "name": "gatk-4.6.2.0",
+      "pname": "gatk",
+      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+      "rev_count": 1027867,
+      "rev_date": "2026-07-05T04:06:12Z",
+      "scrape_date": "2026-07-06T04:40:25.768427Z",
+      "stabilities": [
+        "staging",
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.6.2.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/ac7j7fljw53vr5c9zwp8c9lgyrhfvzgz-gatk-4.6.2.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    }
+  ]
+}

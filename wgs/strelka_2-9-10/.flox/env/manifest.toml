@@ -1,0 +1,17 @@
+## Strelka 2.9.10 — runtime Flox environment
+## Installs the strelka package built + published from the build repo at
+## floxified/build/strelka (strelka is not in the public catalog).
+##
+## Resolves only AFTER a maintainer runs `flox publish -o flox-labs strelka`.
+## To finalize this env post-publish:  flox install -d . flox-labs/strelka
+schema-version = "1.13.0"
+
+[install]
+strelka.pkg-path = "flox-labs/strelka"
+strelka.version = "2.9.10"
+
+[options]
+systems = [
+  "aarch64-linux",
+  "x86_64-linux",
+]

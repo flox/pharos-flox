@@ -1,0 +1,17 @@
+## GATK 4.6.2.0 — catalog-native Flox environment
+## Replaces wgs/gatk_4-6-2-0/Dockerfile (which wrapped the upstream
+## broadinstitute/gatk image). Same stock release, installed from the Flox
+## catalog at the exact pinned version.
+schema-version = "1.13.0"
+
+[install]
+gatk.pkg-path = "gatk"
+gatk.version = "4.6.2.0"
+
+[options]
+systems = [
+  "aarch64-darwin",
+  "aarch64-linux",
+  "x86_64-darwin",
+  "x86_64-linux",
+]
