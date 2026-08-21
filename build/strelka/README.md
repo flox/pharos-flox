@@ -31,7 +31,7 @@ old world and the new one collided, and how we bridged each.
 A key consequence of publishing: **the insecure/removed-Python problem only
 exists at *build* time on our machine.** Once published, consumers install a
 pre-built binary closure: they never re-evaluate Python 2, so the block never
-fires for them. If you take one idea from this repo, take that one: *build the
+fires for them. If you take one idea from all this, take that one: *build the
 awkward thing once, in a controlled place, and ship the result.*
 
 ---
@@ -60,7 +60,7 @@ Strelka bundles **boost 1.58** (2015) alongside its own 2018-era C++. Old,
 header-heavy C++ like this is a frequent casualty of newer GCC's stricter
 parsing, so we build with an older compiler rather than the default gcc-15 — a
 deliberate, conservative choice for code this age. (The risk is not hypothetical:
-this repo's sibling verifybamid2 has a bundled Eigen that fails outright on
+the sibling verifybamid2 build has a bundled Eigen that fails outright on
 gcc-15; and Section 3 below shows strelka's own sources needed adjustment even on
 gcc-13.) The natural fix is "use an older gcc," and older gccs *are* in the Flox
 catalog — but here is a subtlety that cost us a few build cycles:
