@@ -7,7 +7,24 @@ coreutils.pkg-path = "coreutils"
 
 [build.gatkcondaenv]
 description = "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment"
-version = "4.6.2.0"
+# 4.6.2.0 is the GATK release these locks belong to. The suffix is the short hash
+# of the commit this content was built from, so that adding a lock for another
+# platform, which does not change the GATK version, still publishes as a distinct
+# version instead of colliding with what is already in the catalog.
+#
+# The hash is written by hand, NOT derived with `version.command = "git rev-parse
+# --short HEAD"`, for two reasons:
+#
+#   1. Self-reference. The commit that introduces a hash cannot contain its own
+#      hash, so a derived value would always name a different tree than the one
+#      shipped. Pinning the parent commit is off by one on purpose, and honest
+#      about it.
+#   2. `sandbox = "pure"` copies only git-tracked files into the build, so .git is
+#      not there to query.
+#
+# BUMP THIS when the packaged files change, e.g. when the aarch64-linux lock is
+# added: set it to the short hash of HEAD just before that commit.
+version = "4.6.2.0-ffe4631"
 # Pure: these are git-tracked data files with no network or host dependency, so the
 # build is fully reproducible and safe to publish (see FLOX.md section 9.2).
 sandbox = "pure"

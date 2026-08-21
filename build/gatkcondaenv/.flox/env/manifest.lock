@@ -18,7 +18,7 @@
       "gatkcondaenv": {
         "command": "  install -d \"$out/share/gatkcondaenv\"\n\n  # Per-platform explicit conda locks. The consuming hook selects one by mapping\n  # $(uname -s)-$(uname -m) to the flox system name.\n  install -m 644 gatkcondaenv.x86_64-linux.lock    \"$out/share/gatkcondaenv/\"\n  install -m 644 gatkcondaenv.aarch64-darwin.lock  \"$out/share/gatkcondaenv/\"\n\n  # The Apple-Silicon-adapted spec the aarch64-darwin lock was solved from. Not\n  # used at runtime; shipped so the lock can be regenerated or audited from the\n  # package alone, without the repo.\n  install -m 644 gatkcondaenv.macos.yml            \"$out/share/gatkcondaenv/\"\n\n  # gcnvkernel + scorevariants. Not a conda or PyPI package: GATK ships it inside\n  # its release, and the hook pip-installs it into the materialized conda env.\n  install -m 644 gatkPythonPackageArchive.zip      \"$out/share/gatkcondaenv/\"\n\n  # Clears the spurious executable-stack flag on conda-forge's libtorch_cpu.so.\n  # Executable: the hook invokes it with the conda env's own python.\n  install -m 755 clear-execstack.py                \"$out/share/gatkcondaenv/\"\n",
         "sandbox": "pure",
-        "version": "4.6.2.0",
+        "version": "4.6.2.0-ffe4631",
         "description": "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment"
       }
     }

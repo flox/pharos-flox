@@ -54,6 +54,24 @@ prefix paths into scripts and shebangs, so a materialized env is not cleanly
 relocatable to a Nix store path. `flox containerize` is the route to a fully
 sealed artifact.
 
+## Versioning
+
+`version` is `<GATK release>-<short commit>`, e.g. `4.6.2.0-ffe4631`.
+
+The GATK part identifies which release the locks belong to. The suffix exists
+because adding a lock for a new platform does not change the GATK version, and
+republishing the same version would collide with what is already in the catalog.
+
+The hash is **written by hand and is the parent commit**, not the commit that
+ships the change. That is not an oversight: a commit cannot contain its own hash,
+so any derived value names a different tree than the one actually published.
+Pinning the parent is off by one on purpose. `version.command = "git rev-parse
+--short HEAD"` would also fail here regardless, since `sandbox = "pure"` copies
+only git-tracked files and leaves `.git` out of the build.
+
+So: bump it by hand whenever the packaged files change, to the short hash of
+`HEAD` immediately before that commit.
+
 ## Keeping it in sync
 
 The locks are generated per platform, on that platform, as described in
