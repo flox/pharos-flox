@@ -1,2 +1,7 @@
 # Flox build outputs (regenerable via `flox build`), anywhere in the tree
 result-*
+
+# Editor / OS junk
+*.sw[a-p]
+*~
+.DS_Store
