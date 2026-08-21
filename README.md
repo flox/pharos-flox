@@ -10,7 +10,7 @@ exists (b) or from a small, reproducible Flox build when it doesn't.
 ```
 floxified/
   wgs/<tool>_<ver>/.flox/     runtime environments (what you activate/use)
-  build/<tool>/.flox/         build-only repos for tools missing from the catalog
+  build/<tool>/.flox/         build-only environments for tools missing from the catalog
 ```
 
 ## The tools
@@ -54,12 +54,12 @@ network access beyond those. The actual build is performed in the Nix sandbox.
 
 The runtime envs under `wgs/{strelka,cutadapt,verifybamid2}_*` reference
 `flox-labs/<tool>` and only resolve once the package is published. For each build
-repo:
+subdirectory:
 
 ```bash
-cd floxified/build/<tool>
+cd build/<tool>
 flox build <tool>                 # verify it builds → ./result-<tool>
-# commit .flox/ to a git remote (publish requires a clean, pushed tree)
+# the repo must be committed and pushed to a remote (publish needs a clean tree)
 flox auth login
 flox publish -o flox-labs <tool>
 ```
@@ -80,25 +80,24 @@ variants under pypy27, cutadapt trims adapters, and VerifyBamID runs with its
 bundled panels. Only the `flox publish` step remains, and it is intentionally
 left to a maintainer with `flox-labs` access.
 
-To build and publish these packages under your own Flox org namespace, just clone
-their GitHub repos and run `flox publish -o <your_org_namespace> <package_name>`:
+To build and publish these packages under your own Flox org namespace, clone this
+repo and run `flox publish -o <your_org_namespace> <package_name>` from each build
+subdirectory:
 
 ```bash
+git clone <your-repo-host>/<this-repo>.git && cd <this-repo>
 flox auth login                     # authenticate once
 
-git clone <your-repo-host>/strelka.git
-cd strelka       && flox publish -o <your_org_namespace> strelka       && cd ..
-
-git clone <your-repo-host>/cutadapt.git
-cd cutadapt      && flox publish -o <your_org_namespace> cutadapt      && cd ..
-
-git clone <your-repo-host>/verifybamid2.git
-cd verifybamid2  && flox publish -o <your_org_namespace> verifybamid2  && cd ..
+cd build/strelka       && flox publish -o <your_org_namespace> strelka       && cd ../..
+cd build/cutadapt      && flox publish -o <your_org_namespace> cutadapt      && cd ../..
+cd build/verifybamid2  && flox publish -o <your_org_namespace> verifybamid2  && cd ../..
 ```
 
-Replace `<your-repo-host>` with wherever these build repos live (e.g.
-`https://github.com/<your-org>`) and `<your_org_namespace>` with your FloxHub org
-or personal handle. `flox publish` must run from inside each repo (it needs a
-clean, pushed git tree), and the trailing name is the build target — it matches
-the directory under `.flox/pkgs/`. Consumers then install with
+Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
+`https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
+FloxHub org or personal handle. `flox publish` runs from inside each build
+subdirectory — it needs a clean, pushed git tree, and the trailing name is the
+build target, matching the directory under `.flox/pkgs/`. The recipes are
+self-contained (only hash-pinned remote fetches), so each builds correctly from
+its subdirectory of the monorepo. Consumers then install with
 `flox install <your_org_namespace>/<package_name>`.
