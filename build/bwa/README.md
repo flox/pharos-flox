@@ -1,7 +1,8 @@
 # Building bwa 0.7.17 with Flox
 
 A build-only Flox environment that compiles [bwa](https://github.com/lh3/bwa)
-0.7.17 from source **for all four systems**, for publishing to the `flox-labs`
+0.7.17 from source **for the three target systems** (x86_64-linux, aarch64-linux,
+aarch64-darwin), for publishing to the `flox-labs`
 catalog. The recipe is a Nix-expression build at
 [`.flox/pkgs/bwa/default.nix`](.flox/pkgs/bwa/default.nix).
 
@@ -19,7 +20,8 @@ The Flox catalog has `bwa@0.7.17`, but **only for x86_64** (`x86_64-linux`,
 **SSE2 intrinsics** (`#include <emmintrin.h>` in `ksw.c`) and predates upstream
 ARM support, so on aarch64 it fails with `fatal error: emmintrin.h: No such file
 or directory`. That's the gap this build closes: a bwa 0.7.17 that compiles on
-aarch64 too, so `flox-labs/bwa` can cover all four systems at the exact version.
+aarch64 too, so `flox-labs/bwa` covers the three target systems at the exact version.
+(The catalog already has x86_64-darwin, which isn't a target here.)
 
 ## The two things the recipe restores
 
@@ -63,7 +65,6 @@ full-platform `flox-labs/bwa` is produced by running the build on each target:
 | System | How it builds | Verified here |
 |---|---|---|
 | x86_64-linux | native SSE2 | ✅ builds; `bwa 0.7.17-r1188` indexes + aligns |
-| x86_64-darwin | native SSE2 | ⬜ build on macOS/x86_64 |
 | aarch64-linux | sse2neon shim | ⬜ build on aarch64 Linux |
 | aarch64-darwin | sse2neon shim | ⬜ build on Apple Silicon |
 
@@ -79,5 +80,5 @@ flox build bwa                       # native build for that system
 flox publish -o flox-labs bwa        # needs a clean, pushed git tree
 ```
 
-Once published on all four, `flox-labs/bwa` resolves everywhere and the runtime
+Once published on all three, `flox-labs/bwa` resolves everywhere and the runtime
 env `wgs/bwa_0-7-17` installs it uniformly.

@@ -16,4 +16,8 @@ schema-version = "1.13.0"
 htslib.pkg-path = "htslib"
 
 [options]
-systems = ["x86_64-linux", "aarch64-linux"]
+systems = [
+  "x86_64-linux",
+  "aarch64-linux",
+  "aarch64-darwin",
+]

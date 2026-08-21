@@ -1,12 +1,12 @@
 ## bwa 0.7.17 — build-only Flox environment (Nix-expression build)
 ##
 ## The catalog has bwa@0.7.17 for x86_64 only (it predates ARM support). This repo
-## builds it from source for ALL FOUR systems — native SSE2 on x86_64, sse2neon on
+## builds it from source for the three target systems — native SSE2 on x86_64, sse2neon on
 ## aarch64 — to publish a full-platform bwa to the flox-labs catalog.
 ##
 ##   Build:   flox build bwa            -> ./result-bwa   (native to the current system)
 ##   Publish: flox publish -o flox-labs bwa   (run on EACH target platform:
-##            x86_64-linux, aarch64-linux, x86_64-darwin, aarch64-darwin)
+##            x86_64-linux, aarch64-linux, aarch64-darwin)
 ##
 ## The build recipe lives in .flox/pkgs/bwa/default.nix.
 schema-version = "1.13.0"
@@ -16,4 +16,8 @@ schema-version = "1.13.0"
 zlib.pkg-path = "zlib"
 
 [options]
-systems = ["x86_64-linux", "aarch64-linux", "x86_64-darwin", "aarch64-darwin"]
+systems = [
+  "x86_64-linux",
+  "aarch64-linux",
+  "aarch64-darwin",
+]

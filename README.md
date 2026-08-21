@@ -21,7 +21,7 @@ pharos-flox/
 | seqtk | 1.4 | catalog-native (exact) |
 | fastqc | 0.12.1 | catalog-native (exact) |
 | gatk | 4.6.2.0 | catalog-native (exact) |
-| bwa | 0.7.17 | **built** → `flox-labs/bwa` (catalog is x86_64-only; built for all 4 systems) |
+| bwa | 0.7.17 | **built** → `flox-labs/bwa` (catalog is x86_64-only; built for the 3 target systems) |
 | strelka | 2.9.10 | **built** → `flox-labs/strelka` (see below) |
 | cutadapt | 5.2 | **built** → `flox-labs/cutadapt` |
 | verifybamid2 | 1.0.5 | **built** → `flox-labs/verifybamid2` |
@@ -37,7 +37,7 @@ flox activate -d pharos-flox/wgs/samtools_1-19-2 -- samtools --version
 They aren't available (at the exact version, on every system) in the Flox catalog:
 
 - **bwa 0.7.17**. In the catalog but **x86_64 only** — this 2017 release predates
-  ARM support (hard-coded x86 SSE2 intrinsics). Built for all four systems, using
+  ARM support (hard-coded x86 SSE2 intrinsics). Built for the three target systems (x86_64-linux, aarch64-linux, aarch64-darwin), using
   the `sse2neon` shim on aarch64. Build + publish on each target platform.
 - **strelka 2.9.10**. In the catalog but blocked: it needs Python 2, which
   nixpkgs now marks insecure / has removed. The build compiles strelka from
@@ -53,9 +53,9 @@ recipe lives in `.flox/pkgs/<tool>/default.nix` and produces a reproducible
 artifact with `flox build`. The build hosts fetch only hash-pinned sources. There's no pre-build
 network access beyond those. The actual build is performed in the Nix sandbox.
 
-## Maintainer workflow: publish the three built tools
+## Maintainer workflow: publish the four built tools
 
-The runtime envs under `wgs/{strelka,cutadapt,verifybamid2}_*` reference
+The runtime envs under `wgs/{bwa,strelka,cutadapt,verifybamid2}_*` reference
 `flox-labs/<tool>` and only resolve once the package is published. For each build
 subdirectory:
 
@@ -78,10 +78,10 @@ The provided binary isn't always named after the package: strelka's entrypoints
 are `configureStrelkaGermlineWorkflow.py` / `configureStrelkaSomaticWorkflow.py`,
 and verifybamid2's binary is `VerifyBamID` (run it with no args for usage).
 
-All three built artifacts have been verified locally: strelka calls the demo
-variants under pypy27, cutadapt trims adapters, and VerifyBamID runs with its
-bundled panels. Only the `flox publish` step remains, and it is intentionally
-left to a maintainer with `flox-labs` access.
+All four built artifacts have been verified on **x86_64-linux**: strelka calls
+the demo variants under pypy27, cutadapt trims adapters, VerifyBamID runs its
+bundled test, and bwa indexes + aligns. The aarch64-linux and aarch64-darwin
+builds are structured but unproven — build them on that hardware to confirm.
 
 To build and publish these packages under your own Flox org namespace, clone this
 repo and run `flox publish -o <your_org_namespace> <package_name>` from each build
@@ -99,9 +99,11 @@ cd build/verifybamid2  && flox publish -o <your_org_namespace> verifybamid2  && 
 
 Note on **multi-platform packages**: `flox publish` builds natively for the
 current system, so a package that spans systems is published by running the
-command on each. `bwa` targets all four (x86_64/aarch64 × linux/darwin) — publish
-it once per platform. `strelka` and `verifybamid2` are linux-only; `cutadapt` is
-verified on x86_64-linux (its recipe declares all four).
+command on each. **All four builds target three systems** — `x86_64-linux`,
+`aarch64-linux`, `aarch64-darwin` — so publish each once per system. Only
+x86_64-linux is verified here; the two aarch64 builds are structured but unproven
+(the aarch64-darwin builds of strelka/verifybamid2 in particular may need recipe
+adjustments — validate on the target hardware).
 
 Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your

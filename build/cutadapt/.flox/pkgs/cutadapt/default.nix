@@ -78,5 +78,10 @@ ps.buildPythonApplication rec {
     description = "Adapter trimming and other preprocessing of high-throughput sequencing reads";
     homepage = "https://cutadapt.readthedocs.io";
     mainProgram = "cutadapt";
+    platforms = [
+      "x86_64-linux"
+      "aarch64-linux"
+      "aarch64-darwin"
+    ];
   };
 }

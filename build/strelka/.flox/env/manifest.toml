@@ -19,4 +19,8 @@ pypy27.pkg-path = "pypy27"
 
 [options]
 # strelka (and pypy27) are Linux-only in the catalog.
-systems = ["x86_64-linux", "aarch64-linux"]
+systems = [
+  "x86_64-linux",
+  "aarch64-linux",
+  "aarch64-darwin",
+]

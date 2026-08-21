@@ -14,4 +14,8 @@ schema-version = "1.13.0"
 python3.pkg-path = "python3"
 
 [options]
-systems = ["x86_64-linux", "aarch64-linux", "x86_64-darwin", "aarch64-darwin"]
+systems = [
+  "x86_64-linux",
+  "aarch64-linux",
+  "aarch64-darwin",
+]
