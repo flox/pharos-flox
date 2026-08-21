@@ -82,7 +82,7 @@ dependency is conditional on `python_version < "3.14"`, true for 3.13. Choosing
 xopen 1.7.0 sidestepped it, but only once we knew *which* Python was in play.
 
 > **Reusable lesson.** Don't assume `python3` and `python3Packages` are the same
-> minor version. Check the actual interpreter the package set targets — dependency
+> minor version. Check the actual interpreter the package set targets: dependency
 > markers (`; python_version < "…"`) hinge on it.
 
 ### 5. Read the build error for the missing *build backend*

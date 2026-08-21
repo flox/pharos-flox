@@ -16,7 +16,7 @@ flox build strelka          # -> ./result-strelka
 Strelka *is* in the Flox catalog, but it won't install: it depends on **Python
 2.7**, and modern nixpkgs first marked CPython 2.7 as insecure (refusing to
 evaluate) and then removed it from the package set entirely. Strelka 2.9.10
-(2018) is its final release and is permanently Python-2-bound — there is no
+(2018) is its final release and is permanently Python-2-bound; there is no
 version we can bump to.
 
 This is the general shape of the problem you hit with a lot of scientific
@@ -81,7 +81,7 @@ let gcc13Stdenv = overrideCC stdenv gcc13; in gcc13Stdenv.mkDerivation { ... }
 
 > **Reusable lesson.** To build old C++ with an older compiler in a Nix
 > expression: `overrideCC stdenv gccN`. Probe which `gccN` actually exist first
-> (and force the value — a lazy unused arg won't trip the "removed" error), then
+> (and force the value: a lazy unused arg won't trip the "removed" error), then
 > pick the oldest available.
 
 ### 3. gcc-13 is stricter too → force-include the headers old code assumed
@@ -91,7 +91,7 @@ gcc-13 builds the bundled boost cleanly, but it then rejected strelka's *own*
 `<cstdint>` and `<memory>` in transitively through other headers; gcc-13's cleaner
 headers don't, so code that used `std::numeric_limits` without including `<limits>`
 no longer compiles. Rather than patch every offending file we force-include the
-common headers — but only for C++, so the flag never reaches the bundled *C*
+common headers, but only for C++, so the flag never reaches the bundled *C*
 sources of htslib/samtools (where a C++ header is a hard error):
 
 ```nix
@@ -163,14 +163,14 @@ it. On **PyPy** the GC is *not* refcounting, so the handle isn't closed promptly
 close explicitly.
 
 > **Reusable lesson.** The #1 way pure-Python code breaks under PyPy is relying
-> on CPython's prompt, refcounting-driven finalization — unclosed files/sockets,
+> on CPython's prompt, refcounting-driven finalization, unclosed files/sockets,
 > `__del__` timing. When a PyPy port fails mysteriously mid-run, grep for
 > `open(...)` without a `with`/`.close()` and for `__del__`.
 
 ### 8. Interpreters get *baked into generated files*, not just shebangs
 
 We pinned every `#!/usr/bin/env python2` across `bin/`, `libexec/` and `lib/` to
-PyPy's store path — and it *still* failed at runtime with `env: python2: not
+PyPy's store path, and it *still* failed at runtime with `env: python2: not
 found`. The culprit was `lib/python/makeRunScript.py`, which holds the
 interpreter as a **template string** (`pythonBin="/usr/bin/env python2"`) that
 it writes into the `runWorkflow.py` the user generates later. It has no `#!`, so
@@ -195,7 +195,7 @@ our shebang sweep never matched it. We pin that assignment too.
 Strelka's own `make` target compiles and runs its bundled unit tests. Beyond
 that, the built artifact was validated end-to-end on the bundled demo:
 configuring and running the germline workflow under PyPy produced 18 variant
-calls — identical to a standalone from-source prototype run — with the generated
+calls, identical to a standalone from-source prototype run, with the generated
 `runWorkflow.py` correctly shebanged to the PyPy store path.
 
 ## Publishing
@@ -206,6 +206,6 @@ flox auth login
 flox publish -o flox-labs strelka
 ```
 
-Consumers then `flox install flox-labs/strelka` and get the pre-built closure —
+Consumers then `flox install flox-labs/strelka` and get the pre-built closure:
 no compiler and no Python-2 evaluation on their side, and the PyPy porting issues
 above already solved (the tool runs on the PyPy bundled into the closure).

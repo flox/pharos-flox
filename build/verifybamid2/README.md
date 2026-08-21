@@ -1,8 +1,8 @@
 # Building VerifyBamID2 1.0.5 with Flox
 
 A build-only Flox environment that compiles [VerifyBamID2](https://github.com/Griffan/VerifyBamID)
-1.0.5 from source — including a pinned htslib and the bundled SVD reference
-panels — for publishing to the `flox-labs` catalog. The recipe is a
+1.0.5 from source, including a pinned htslib and the bundled SVD reference
+panels, for publishing to the `flox-labs` catalog. The recipe is a
 Nix-expression build at
 [`.flox/pkgs/verifybamid2/default.nix`](.flox/pkgs/verifybamid2/default.nix).
 
@@ -17,7 +17,7 @@ flox build verifybamid2     # -> ./result-verifybamid2
 
 VerifyBamID2 was never in the Flox catalog, and it isn't in nixpkgs. It's a 2018
 C++/CMake tool whose build assumes a 2018 world: an old CMake, an old bundled
-Eigen, and — the interesting part — a build script that **`git clone`s htslib
+Eigen, and (the interesting part) a build script that **`git clone`s htslib
 from the network at build time.** None of that survives contact with a modern,
 hermetic Nix build, so this is the most involved of the three recipes. It's also
 the best teaching example, because it exercises nearly every category of problem
@@ -48,21 +48,21 @@ htslibSrc = fetchFromGitHub { owner = "samtools"; repo = "htslib"; rev = "1.9"; 
 # postPatch: cp -r ${htslibSrc}/. samtools/htslib/
 ```
 
-> **Reusable lesson.** Any build-time download — `git clone`, `wget`, `pip
-> install`, `go get` — must become a hash-pinned Nix fetch provided up front.
+> **Reusable lesson.** Any build-time download (`git clone`, `wget`, `pip
+> install`, `go get`) must become a hash-pinned Nix fetch provided up front.
 > Grep the build system for `GIT_REPOSITORY`, `DOWNLOAD`, `URL`, `curl`, `wget`
 > before you start.
 
 ### 2. Which htslib? Pin a version *contemporary with the tool*
 
-The upstream build cloned htslib `master`, unpinned. We pin **1.9** — a release
-contemporary with this 2018 tool — rather than today's 1.2x.
+The upstream build cloned htslib `master`, unpinned. We pin **1.9**, a release
+contemporary with this circa-2018 tool, rather than today's 1.2x.
 
 This is a **conservative choice we did not empirically test the alternative to**:
 we neither audited which htslib symbols VerifyBamID's `libVcf` actually calls nor
-tried building against a current htslib. The reasoning is precautionary — htslib
+tried building against a current htslib. The reasoning is precautionary, htslib
 has deprecated and removed API across its 1.x line, and 2018-era C that links it
-is a common place for that drift to surface — so pinning a contemporary release
+is a common place for that drift to surface, so pinning a contemporary release
 avoids the question entirely. If you need a newer htslib (e.g. for a CVE fix), the
 honest next step is to try it and see what breaks, not to assume 1.9 is required.
 
@@ -97,14 +97,14 @@ accept. Passing the triplet explicitly skips that auto-detection entirely:
 > **Reusable lesson.** For `Invalid configuration '…'` or `machine … not
 > recognized` from an old configure, pass `--build`/`--host` explicitly (Nix
 > hands you the right triplets via `stdenv.*Platform.config`). Don't fight the
-> detection — bypass it.
+> detection: bypass it.
 
 ### 5. `ExternalProject` has *default* steps you didn't write
 
 Even after neutralizing the clone and the upstream configure/build commands, the
 build failed in an htslib `make install` we never asked for.
 `ExternalProject_Add` runs a **download → update/patch → configure → build →
-install** pipeline, and any stage you leave unspecified gets a *default* — for a
+install** pipeline, and any stage you leave unspecified gets a *default*; for a
 Make project the install stage defaults to `make install`. Because we build
 htslib ourselves in `preConfigure`, we no-op every stage, including the install
 (and, defensively, the optional test step):
@@ -117,7 +117,7 @@ INSTALL_COMMAND "true" TEST_COMMAND ""
 > **Reusable lesson.** When you take over a dependency's build from
 > `ExternalProject_Add` (or CMake's `FetchContent`, or a submodule build),
 > neutralize *every* stage, not just the obvious one. Here it was the default
-> `INSTALL` stage — the one you never wrote — that bit us after the download was
+> `INSTALL` stage, the one you never wrote, that bit us after the download was
 > already handled.
 
 ### 6. Build order isn't guaranteed → build the dependency first, explicitly
@@ -151,7 +151,7 @@ gcc13Stdenv = overrideCC stdenv gcc13;
 > **Reusable lesson.** Modern gcc parses template bodies more eagerly and
 > strictly than gcc-13 and earlier. Old header-only C++ (Eigen, Boost, various
 > single-header libs) is where this bites. `overrideCC stdenv gcc13` is the
-> lowest-risk fix — the same move strelka needed. (`gcc9`–`gcc12` are *gone* from
+> lowest-risk fix: the same move strelka needed. (`gcc9`–`gcc12` are *gone* from
 > the base; `gcc13`/`gcc14` are what remain.)
 
 ### 9. The tool is more than a binary → ship its data
@@ -172,7 +172,7 @@ via Flox they live at `$FLOX_ENV/resource/…`.
 
 The build produces `$out/bin/VerifyBamID` (runs and prints its full usage) plus
 the 51 resource files. `ldd` on the binary shows every shared library resolving
-into `/nix/store` with no dangling `/build` or `/tmp` references — it is fully
+into `/nix/store` with no dangling `/build` or `/tmp` references: it is fully
 self-contained. (A full contamination estimate needs real WGS data overlapping
 the panel markers, which is beyond a build-time smoke test.)
 
@@ -198,6 +198,6 @@ The order that worked here generalizes well:
 3. **Then fight the compiler.** If old C++ won't parse, step back to `gcc13`
    before reaching for source patches; use `CXXFLAGS` force-includes
    (`-include limits …`) for the narrower "missing transitive header" errors.
-4. **Finally, package the whole tool** — binary *and* its data — and check the
+4. **Finally, package the whole tool**: the binary *and* its data, and check the
    closure is self-contained (`ldd`) and free of build-tool leaks (`nix-store
    -qR`).
