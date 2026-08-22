@@ -88,11 +88,13 @@ are ports of the spec rather than re-exports. Locks are architecture-specific an
 must be solved on the target hardware; see `build/gatkcondaenv/README.md` for how
 to add one, and `wgs/gatk_4-6-2-0/README.md` for the full story.
 
-## Maintainer workflow: publish the four built tools
+## Maintainer workflow: publish the built packages
 
-The runtime envs under `wgs/{bwa,strelka,cutadapt,verifybamid2}_*` reference
-`flox-labs/<tool>` and only resolve once the package is published. For each build
-subdirectory:
+Five things get published: the four built tools, plus the `gatkcondaenv` data
+package. The runtime envs under `wgs/{bwa,strelka,cutadapt,verifybamid2}_*`
+reference `flox-labs/<tool>`, and `wgs/gatk_4-6-2-0` references
+`flox-labs/gatkcondaenv`; each only resolves once its package is published. For
+each build subdirectory:
 
 ```bash
 cd build/<tool>
@@ -113,7 +115,7 @@ The provided binary isn't always named after the package: strelka's entrypoints
 are `configureStrelkaGermlineWorkflow.py` / `configureStrelkaSomaticWorkflow.py`,
 and verifybamid2's binary is `VerifyBamID` (run it with no args for usage).
 
-All four built artifacts have been verified on **x86_64-linux**: strelka calls
+All four built *tools* have been verified on **x86_64-linux**: strelka calls
 the demo variants under pypy27, cutadapt trims adapters, VerifyBamID runs its
 bundled test, and bwa indexes + aligns.
 
@@ -144,7 +146,7 @@ per system, because `flox publish` builds for the current host.
 
 Note on **multi-platform packages**: `flox publish` builds natively for the
 current system, so a package that spans systems is published by running the
-command on each. **All four builds target three systems** — `x86_64-linux`,
+command on each. **All five builds target three systems** — `x86_64-linux`,
 `aarch64-linux`, `aarch64-darwin` — so publish each once per system. Only
 x86_64-linux is verified for all of them, and strelka additionally on both aarch64
 targets; the remaining aarch64 builds are structured but unproven (verifybamid2 in
