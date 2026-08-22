@@ -263,7 +263,41 @@ The same clean-run check on `aarch64-darwin`:
 | gcnvkernel installs from the archive | `gatkpythonpackages-0.2` wheel built and installed |
 | exec-stack fix | no-op, 0 libraries (Mach-O, not ELF; the script skips non-ELF files) |
 | Python stack imports | `gcnvkernel`, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0, pysam 0.22.1, `vcf` (pyvcf3) |
-| PyTensor C backend | **requires Xcode CLT**; without it, use `PYTENSOR_FLAGS=cxx=` (see above) |
+| assets resolve from the package | verified the hard way, by `flox activate -r flox-labs/gatk-4-6-2-0` with no checkout present at all: `$FLOX_ENV/share/gatkcondaenv` supplied the lock, the archive and the exec-stack script, and the env materialized end to end |
+| PyTensor C backend | needs Xcode CLT **and** the env's triple-prefixed compiler; see below |
+| **gCNV end to end** | `DetermineGermlineContigPloidy` on GATK's 20-sample `gcnv-sim-data`, 1.92 min. All 100 discrete calls identical to both `x86_64-linux` and `aarch64-linux`, including the seven disputed female X=3 rows. X `PLOIDY_GQ` agrees to every digit printed: SAMPLE_000 `46.36143757554091` vs `46.361438`, SAMPLE_013 `106.4155162160399` vs `106.415516` |
+
+### macOS: the CLT is necessary but not sufficient
+
+Installing the Command Line Tools fixes the missing SDK, but the C backend still
+fails to **link**, for an unrelated reason. conda's clang 16 passes its LTO plugin
+by versioned filename, and Apple's current linker refuses it:
+
+```
+ld: -lto_library library filename must be 'libLTO.dylib'
+```
+
+The env passes `.../lib/libLTO.16.dylib`; `/usr/bin/ld` (ld-1267) requires that
+basename to be exactly `libLTO.dylib`. Symlinking does not help, because clang
+passes the versioned path explicitly rather than searching.
+
+The env ships its own linker but installs no plain `ld`, only
+`arm64-apple-darwin20.0.0-ld`, so bare `clang++` finds Apple's. Driving the build
+through the matching triple-prefixed compiler picks up conda's linker and links
+cleanly:
+
+```bash
+PYTENSOR_FLAGS="cxx=$(dirname $(command -v python))/arm64-apple-darwin20.0.0-clang++"
+```
+
+This is the trap the rest of this section warns about, in its worst form: with a
+compiler configured but unusable, `import gcnvkernel` fails outright rather than
+degrading, whereas with **no** compiler PyTensor silently drops to its Python
+backend and imports appear to succeed. Both look like "it works" from a distance,
+and only one of them is running compiled code.
+
+The gCNV row above was produced with that flag set. It is not yet applied by the
+`[hook]`, so on macOS it currently has to be exported by the caller.
 
 And on `aarch64-linux`:
 
@@ -374,9 +408,25 @@ agreement rather than an artifact of the two runs sharing a code path.
 
 Two limits on that claim. It compares the digits that were compared, six decimals
 of `PLOIDY_GQ`, not the raw bits of every model parameter; and it exercises one
-tool on one small dataset, not the whole env. Nothing here has been run on native
-*ARM* hardware, so timings remain meaningless and a Graviton or Apple Silicon host
-is still unexercised.
+tool on one small dataset, not the whole env.
+
+**Now also confirmed on native Apple Silicon.** The `aarch64-darwin` run in the
+table above closes the "no native ARM hardware" gap: real M-series silicon, not
+QEMU, so CPU-feature dispatch is genuine rather than QEMU's maximal advertised set.
+It reproduced all 100 discrete calls and matched every X `PLOIDY_GQ` digit printed.
+
+That makes three independent BLAS/toolchain combinations in agreement:
+
+| System | BLAS | Toolchain |
+|---|---|---|
+| `x86_64-linux` | MKL 2022.2.1 | gcc 12 / libstdc++ |
+| `aarch64-linux` | OpenBLAS 0.3.25 **pthreads** | gcc 12 / libstdc++ |
+| `aarch64-darwin` | OpenBLAS 0.3.25 **openmp** | clang 16 / libc++ |
+
+Different BLAS implementations, different threading models, different C++ standard
+libraries, two architectures and two operating systems, producing identical calls
+and identical printed GQs. The female X over-call is therefore firmly a property of
+the model and this dataset, with no remaining platform explanation.
 
 ---
 
