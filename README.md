@@ -11,6 +11,7 @@ exists (b) or from a small, reproducible Flox build when it doesn't.
 pharos-flox/
   wgs/<tool>_<ver>/.flox/     runtime environments (what you activate/use)
   build/<tool>/.flox/         build-only environments for tools missing from the catalog
+  build/gatkcondaenv/.flox/   build-only environment for a data package, not a tool
 ```
 
 ## The tools
@@ -20,7 +21,7 @@ pharos-flox/
 | samtools | 1.19.2 | catalog-native (exact) |
 | seqtk | 1.4 | catalog-native (exact) |
 | fastqc | 0.12.1 | catalog-native (exact) |
-| gatk | 4.6.2.0 | catalog-native (exact) |
+| gatk | 4.6.2.0 | catalog-native (exact) jar, **plus** `flox-labs/gatkcondaenv` for the gCNV/NN Python tools (see below) |
 | bwa | 0.7.17 | **built** → `flox-labs/bwa` (catalog is x86_64-only; built for the 3 target systems) |
 | strelka | 2.9.10 | **built** → `flox-labs/strelka` (see below) |
 | cutadapt | 5.2 | **built** → `flox-labs/cutadapt` |
@@ -48,10 +49,44 @@ They aren't available (at the exact version, on every system) in the Flox catalo
 - **verifybamid2 1.0.5**. Never in the catalog; built from source with a pinned
   `htslib` 1.9 and its bundled SVD reference panels.
 
-Each `build/<tool>/` is a **self-contained, build-only** Flox environment. Its
-recipe lives in `.flox/pkgs/<tool>/default.nix` and produces a reproducible
-artifact with `flox build`. The build hosts fetch only hash-pinned sources. There's no pre-build
+Each `build/<tool>/` is a **self-contained, build-only** Flox environment. For
+these four the recipe is a Nix expression in `.flox/pkgs/<tool>/default.nix`
+(`build/gatkcondaenv/` is the exception: a manifest build, see below) and produces
+a reproducible artifact with `flox build`. The build hosts fetch only hash-pinned sources. There's no pre-build
 network access beyond those. The actual build is performed in the Nix sandbox.
+
+## A fifth build that isn't a tool: `gatkcondaenv`
+
+`gatk` itself is catalog-native, but four of its tools (`DetermineGermlineContigPloidy`,
+`GermlineCNVCaller`, `PostprocessGermlineCNVCalls`, `NVScoreVariants`) shell out to
+Python and `import gcnvkernel`. That Python side is a conda environment, which
+`wgs/gatk_4-6-2-0` materializes on first activation from an **explicit conda lock**.
+
+`build/gatkcondaenv/` packages the data that makes this possible:
+
+| File | Purpose |
+|---|---|
+| `gatkcondaenv.<system>.lock` | explicit conda lock per platform (exact package URLs, no solving) |
+| `gatkcondaenv.macos.yml`, `gatkcondaenv.aarch64-linux.yml` | the ported specs the two non-x86 locks were solved from |
+| `gatkPythonPackageArchive.zip` | gcnvkernel + scorevariants, which GATK ships inside its release rather than on any package index |
+| `clear-execstack.py` | clears a spurious executable-stack flag on conda-forge's `libtorch_cpu.so` |
+
+Two things make it different from the other four builds:
+
+- **It is data, not code.** The recipe is a manifest build (`[build.gatkcondaenv]`
+  in `.flox/env/manifest.toml`, `sandbox = "pure"`) that copies files into
+  `$out/share/gatkcondaenv/`. There is no `.flox/pkgs/*.nix`.
+- **It exists for portability, not availability.** The other builds package
+  software the catalog lacks. This one packages files that used to be read from
+  the repo — which silently failed for anyone without a checkout, since
+  `$FLOX_ENV_PROJECT` is the repo only when the environment *is* a checkout of it.
+  Shipping them as a catalog package is what lets `flox activate -r
+  flox-labs/gatk-4-6-2-0` work on a machine that has never cloned anything.
+
+GATK's official `gatkcondaenv.yml` pins Intel-only MKL, so the two non-x86 locks
+are ports of the spec rather than re-exports. Locks are architecture-specific and
+must be solved on the target hardware; see `build/gatkcondaenv/README.md` for how
+to add one, and `wgs/gatk_4-6-2-0/README.md` for the full story.
 
 ## Maintainer workflow: publish the four built tools
 
@@ -80,8 +115,13 @@ and verifybamid2's binary is `VerifyBamID` (run it with no args for usage).
 
 All four built artifacts have been verified on **x86_64-linux**: strelka calls
 the demo variants under pypy27, cutadapt trims adapters, VerifyBamID runs its
-bundled test, and bwa indexes + aligns. The aarch64-linux and aarch64-darwin
-builds are structured but unproven — build them on that hardware to confirm.
+bundled test, and bwa indexes + aligns.
+
+`strelka` has since been carried to both aarch64 targets: `aarch64-darwin` is
+verified end to end (builds, 9/9 unit-test suites, and both the somatic and
+germline demos matching expected results), and `aarch64-linux` needed two further
+build fixes (see `build/strelka/README.md`). The other three builds remain
+structured but unproven on aarch64 — build them on that hardware to confirm.
 
 To build and publish these packages under your own Flox org namespace, clone this
 repo and run `flox publish -o <your_org_namespace> <package_name>` from each build
@@ -95,15 +135,20 @@ cd build/bwa           && flox publish -o <your_org_namespace> bwa           && 
 cd build/strelka       && flox publish -o <your_org_namespace> strelka       && cd ../..
 cd build/cutadapt      && flox publish -o <your_org_namespace> cutadapt      && cd ../..
 cd build/verifybamid2  && flox publish -o <your_org_namespace> verifybamid2  && cd ../..
+cd build/gatkcondaenv  && flox publish -o <your_org_namespace> gatkcondaenv  && cd ../..
 ```
+
+`gatkcondaenv` is published the same way, and is consumed by `wgs/gatk_4-6-2-0`
+rather than by a build of its own. Being data, it still has to be published once
+per system, because `flox publish` builds for the current host.
 
 Note on **multi-platform packages**: `flox publish` builds natively for the
 current system, so a package that spans systems is published by running the
 command on each. **All four builds target three systems** — `x86_64-linux`,
 `aarch64-linux`, `aarch64-darwin` — so publish each once per system. Only
-x86_64-linux is verified here; the two aarch64 builds are structured but unproven
-(the aarch64-darwin builds of strelka/verifybamid2 in particular may need recipe
-adjustments — validate on the target hardware).
+x86_64-linux is verified for all of them, and strelka additionally on both aarch64
+targets; the remaining aarch64 builds are structured but unproven (verifybamid2 in
+particular may need recipe adjustments — validate on the target hardware).
 
 Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
