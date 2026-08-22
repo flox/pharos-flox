@@ -52,28 +52,17 @@ materialize_gatk_gcnv_env() {
         *)              sys="$(uname -s)-$(uname -m)" ;;
     esac
 
-    # Locate the data files this hook needs: the per-platform lock, the gcnvkernel
-    # archive, and the exec-stack fix.
+    # The per-platform lock, the gcnvkernel archive and clear-execstack.py all come
+    # from the flox-labs/gatkcondaenv package installed above. $FLOX_ENV is present
+    # however the environment was obtained -- checkout or FloxHub pull -- which is
+    # what makes this environment portable.
     #
-    # PREFERRED: the flox-labs/gatkcondaenv catalog package, installed above, which
-    # puts them in $FLOX_ENV/share/gatkcondaenv. That path is present however the
-    # environment was obtained, which is what makes this environment portable, and
-    # it is the path taken in practice now that the package is installed.
-    #
-    # FALLBACK: this repo's own copies beside the manifest. $FLOX_ENV_PROJECT is the
-    # repo ONLY when the environment is a checkout of it. For an environment pulled
-    # from FloxHub (`flox activate -r flox-labs/gatk`) it is
-    # ~/.cache/flox/remote/<owner>/<name>, which contains just .flox and none of
-    # these files, so relying on it alone silently disabled the Python tools
-    # everywhere except in-tree. The fallback is now only reached if the package
-    # entry is removed from [install] or fails to resolve; it is kept so that a
-    # checkout still works in that case, and so the two copies can be diffed.
-    local assets
-    if [ -d "$FLOX_ENV/share/gatkcondaenv" ]; then
-        assets="$FLOX_ENV/share/gatkcondaenv"
-    else
-        assets="$FLOX_ENV_PROJECT"
-    fi
+    # This used to fall back to $FLOX_ENV_PROJECT, i.e. to copies committed beside
+    # this manifest. That fallback is gone along with those copies: $FLOX_ENV_PROJECT
+    # is the repo only when the environment IS a checkout of it, and for an
+    # environment pulled from FloxHub it is just the current working directory, so
+    # the fallback quietly did nothing except where it was never needed.
+    local assets="$FLOX_ENV/share/gatkcondaenv"
 
     local lock="$assets/gatkcondaenv.$sys.lock"
 
@@ -84,16 +73,14 @@ materialize_gatk_gcnv_env() {
     if [ ! -f "$lock" ]; then
         echo "gatk: no gatkcondaenv lock for '$sys', Java tools work; the gCNV/NN Python"
         echo "      tools need one."
-        # Which advice is correct depends on WHY the lock is absent, so say which
-        # case this is rather than offering both and making the reader guess.
-        if [ "$assets" = "$FLOX_ENV/share/gatkcondaenv" ]; then
-            # Assets package is installed; it genuinely ships no lock for this
-            # platform. Installing it again would do nothing.
+        # Distinguish "package present but no lock for this platform" from "package
+        # missing entirely", since the fix differs and only one of them is ours.
+        if [ -d "$assets" ]; then
             echo "      The assets package is installed but carries no lock for '$sys'."
             echo "      One has to be generated on this platform (see README)."
         else
-            echo "      Install the assets package, or, if it has no lock for '$sys'"
-            echo "      either, generate one on this platform (see README):"
+            echo "      The flox-labs/gatkcondaenv assets package is not in this"
+            echo "      environment. Reinstall it with:"
             echo "          flox install flox-labs/gatkcondaenv"
         fi
         return 0

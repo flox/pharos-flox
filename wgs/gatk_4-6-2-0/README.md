@@ -132,35 +132,47 @@ the manifest and working in the shell by hand; confirm it there with `which pyth
 ## Portability: where the lock and archive come from
 
 The hook needs three files at activation: the per-platform conda lock,
-`gatkPythonPackageArchive.zip`, and `clear-execstack.py`. It resolves them in this
-order:
+`gatkPythonPackageArchive.zip`, and `clear-execstack.py`. All three come from the
+**`flox-labs/gatkcondaenv`** catalog package (built from `build/gatkcondaenv/`),
+installed into this environment and read from `$FLOX_ENV/share/gatkcondaenv`.
+`$FLOX_ENV` is present however the environment was obtained, which is what makes
+this environment portable.
 
-1. `$FLOX_ENV/share/gatkcondaenv`, installed by the **`flox-labs/gatkcondaenv`**
-   catalog package (built from `build/gatkcondaenv/`). This is what makes the
-   environment portable.
-2. `$FLOX_ENV_PROJECT`, this repo's own copies, for in-tree development.
-
-The fallback is not the general case, and relying on it alone was a bug. For a
-checkout, `$FLOX_ENV_PROJECT` is the repo and the files are found. For an
-environment pulled from FloxHub with `flox activate -r flox-labs/gatk`, it is
-**the current working directory** -- whatever directory you happened to run the
-command from, which has nothing to do with this repo:
+Nothing is read from the repo. Earlier revisions committed copies of those files
+beside this manifest and fell back to `$FLOX_ENV_PROJECT`, which was a bug:
+`$FLOX_ENV_PROJECT` is the repo only when the environment *is* a checkout of it.
+For an environment pulled from FloxHub it is simply the current working directory:
 
 ```
 $ cd /tmp && flox activate -r flox-labs/gatk-4-6-2-0 -- sh -c 'echo $FLOX_ENV_PROJECT'
 /private/tmp
 ```
 
-So the three files were simply absent, and the Python tools were silently
-unavailable anywhere outside a checkout, with a message that blamed a missing lock
-rather than a missing repo. Worse than merely absent: because the path is an
-arbitrary cwd, running from the wrong directory could in principle *find* a
-same-named lock. See `build/gatkcondaenv/README.md`.
+So the fallback did nothing except where it was never needed, and the Python tools
+were silently unavailable anywhere outside a checkout. Both the copies and the
+fallback are now gone; `build/gatkcondaenv/` is the single source of truth.
+
+Verified by deleting the in-tree copies, wiping the materialized conda env, and
+re-activating: the environment rebuilt from the package alone and
+`DetermineGermlineContigPloidy` produced `ploidy-calls/` byte-identical to the
+previous run.
 
 Note this makes the environment independent of *GitHub*, not of the network: first
 activation still downloads ~1.8 GB of conda packages from anaconda.org.
 
----
+### Harmless post-link noise on first materialization
+
+Three conda packages (`gdk-pixbuf`, `graphviz`, `librsvg`) run post-link scripts
+that re-invoke micromamba and reject the name flox's wrapper presents:
+
+```
+Error unknown MAMBA_EXE: ".../bin/.mamba-wrapped", filename must be mamba or micromamba
+```
+
+These are non-fatal. Materialization completes, the sentinel is written, and every
+gCNV run above was produced by an environment that emitted them. None of the three
+packages is used by gcnvkernel or scorevariants; they arrive as transitive
+dependencies of the R/plotting stack.
 
 ## Per-platform locks
 
@@ -453,12 +465,12 @@ the model and this dataset, with no remaining platform explanation.
 
 ## What is committed here, and what is not
 
-Committed: the manifest, all three locks (`x86_64-linux`, `aarch64-linux`,
-`aarch64-darwin`), the `gatkcondaenv.macos.yml` and
-`gatkcondaenv.aarch64-linux.yml` specs the two ported locks were solved from, the
-119 KB gcnvkernel archive, `clear-execstack.py`, and this README. These are the
-in-tree fallback copies; the canonical set is the one shipped by the
-`flox-labs/gatkcondaenv` package (see above), and the two are kept identical. Not committed: the materialized conda env,
+Committed: the manifest and this README, and nothing else. The three locks, the two
+ported specs, the gcnvkernel archive and `clear-execstack.py` all live in
+`build/gatkcondaenv/` and reach this environment through the
+`flox-labs/gatkcondaenv` package. They were duplicated here while that package was
+being brought up; those copies are gone, so there is one source of truth rather
+than two to keep in sync. Not committed: the materialized conda env,
 which lives under `$FLOX_ENV_CACHE` (built once per machine, reused after, and
 removed by `flox delete`). On disk that cache is about 5 GB: the env proper is
 ~3.8 GB and micromamba's package cache (scoped here via `CONDA_PKGS_DIRS`) holds
