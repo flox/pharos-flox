@@ -140,17 +140,16 @@ cd build/verifybamid2  && flox publish -o <your_org_namespace> verifybamid2  && 
 cd build/gatkcondaenv  && flox publish -o <your_org_namespace> gatkcondaenv  && cd ../..
 ```
 
-`gatkcondaenv` is published the same way, and is consumed by `wgs/gatk_4-6-2-0`
-rather than by a build of its own. Being data, it still has to be published once
-per system, because `flox publish` builds for the current host.
-
 Note on **multi-platform packages**: `flox publish` builds natively for the
 current system, so a package that spans systems is published by running the
 command on each. **All five builds target three systems** — `x86_64-linux`,
 `aarch64-linux`, `aarch64-darwin` — so publish each once per system. Only
-x86_64-linux is verified for all of them, and strelka additionally on both aarch64
-targets; the remaining aarch64 builds are structured but unproven (verifybamid2 in
-particular may need recipe adjustments — validate on the target hardware).
+x86_64-linux is verified for all of them. `strelka` and `gatkcondaenv` are
+additionally verified on both aarch64 targets — `gatkcondaenv` end to end, by
+pulling `flox-labs/gatk-4-6-2-0` from FloxHub onto a machine with no checkout and
+running gCNV from it. The remaining aarch64 builds are structured but unproven
+(verifybamid2 in particular may need recipe adjustments — validate on the target
+hardware).
 
 Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
