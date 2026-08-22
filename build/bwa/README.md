@@ -62,15 +62,15 @@ build-time network beyond those.
 `flox build`/`flox publish` build **natively for the current system**, so the
 full-platform `flox-labs/bwa` is produced by running the build on each target:
 
-| System | How it builds | Verified here |
+| System | How it builds | Status |
 |---|---|---|
-| x86_64-linux | native SSE2 | ✅ builds; `bwa 0.7.17-r1188` indexes + aligns |
-| aarch64-linux | sse2neon shim | ⬜ build on aarch64 Linux |
-| aarch64-darwin | sse2neon shim | ⬜ build on Apple Silicon |
+| x86_64-linux | native SSE2 | ✅ built, published, `bwa 0.7.17-r1188` indexes + aligns |
+| aarch64-linux | sse2neon shim | ✅ built and published |
+| aarch64-darwin | sse2neon shim | ✅ built and published |
 
-The aarch64 path (sse2neon + `-D__SSE2__`) is written to the documented approach
-but **has not been compiled here** (this author's machine is x86_64-linux). Build
-it on an aarch64 host to confirm before relying on it.
+The aarch64 path (sse2neon + `-D__SSE2__`) has since been built on both aarch64
+targets. `flox show flox-labs/bwa` lists all three systems, and since `flox publish`
+builds natively, a system appearing there means the build succeeded on it.
 
 On each platform:
 

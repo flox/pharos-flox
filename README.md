@@ -115,15 +115,18 @@ The provided binary isn't always named after the package: strelka's entrypoints
 are `configureStrelkaGermlineWorkflow.py` / `configureStrelkaSomaticWorkflow.py`,
 and verifybamid2's binary is `VerifyBamID` (run it with no args for usage).
 
-All four built *tools* have been verified on **x86_64-linux**: strelka calls
+All four built tools have been exercised on **x86_64-linux**: strelka calls
 the demo variants under pypy27, cutadapt trims adapters, VerifyBamID runs its
 bundled test, and bwa indexes + aligns.
 
-`strelka` has since been carried to both aarch64 targets: `aarch64-darwin` is
-verified end to end (builds, 9/9 unit-test suites, and both the somatic and
-germline demos matching expected results), and `aarch64-linux` needed two further
-build fixes (see `build/strelka/README.md`). The other three builds remain
-structured but unproven on aarch64 — build them on that hardware to confirm.
+All five packages are now built and published for all three target systems.
+`flox show flox-labs/<package>` lists them, and because `flox publish` builds
+natively for the current host, a system appearing there means the build succeeded
+on that hardware. `strelka` additionally has its runtime behaviour documented per
+system (unit tests plus both demos on each — see `build/strelka/README.md`), and
+`gatkcondaenv` was verified on `aarch64-darwin` end to end by pulling
+`flox-labs/gatk-4-6-2-0` from FloxHub onto a machine with no checkout and running
+gCNV from it.
 
 To build and publish these packages under your own Flox org namespace, clone this
 repo and run `flox publish -o <your_org_namespace> <package_name>` from each build
@@ -143,13 +146,8 @@ cd build/gatkcondaenv  && flox publish -o <your_org_namespace> gatkcondaenv  && 
 Note on **multi-platform packages**: `flox publish` builds natively for the
 current system, so a package that spans systems is published by running the
 command on each. **All five builds target three systems** — `x86_64-linux`,
-`aarch64-linux`, `aarch64-darwin` — so publish each once per system. Only
-x86_64-linux is verified for all of them. `strelka` and `gatkcondaenv` are
-additionally verified on both aarch64 targets — `gatkcondaenv` end to end, by
-pulling `flox-labs/gatk-4-6-2-0` from FloxHub onto a machine with no checkout and
-running gCNV from it. The remaining aarch64 builds are structured but unproven
-(verifybamid2 in particular may need recipe adjustments — validate on the target
-hardware).
+`aarch64-linux`, `aarch64-darwin` — and all five are published for all three;
+`flox show flox-labs/<package>` is the authoritative check.
 
 Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
