@@ -276,7 +276,7 @@ And on `aarch64-linux`:
 | Python stack imports | `gcnvkernel` 0.9, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0.post3, pysam 0.22.0, `vcf` 0.6.8, numpy 1.26.2, scipy 1.11.3, h5py 3.10.0, sklearn 1.3.2 |
 | PyTensor C backend | compiles; `config.cxx` is the env's own `g++` and the function VM is `pytensor.link.c.cvm.CVM` |
 | assets resolve from the package | hook read `$FLOX_ENV/share/gatkcondaenv`, proven by materializing when no in-tree lock existed |
-| **gCNV end to end** | `DetermineGermlineContigPloidy` runs to completion on GATK's own 20-sample `gcnv-sim-data`; all autosome, all Y and all male X calls are correct, female X is over-called (see below) |
+| **gCNV end to end** | `DetermineGermlineContigPloidy` runs to completion on GATK's own 20-sample `gcnv-sim-data`; all autosome, Y and male X calls correct, female X over-called by one copy for a model reason that is not platform-specific (see below) |
 
 The exec-stack fix and the `which python` check are the two that would silently pass
 a naive smoke test and then fail a real gCNV run, so both are verified explicitly.
@@ -293,48 +293,72 @@ plus per-sample calls for all 20, which exercises the whole chain, the Java tool
 handing off through `PythonScriptExecutor` to gcnvkernel, pymc and pytensor with
 compiled C, and back.
 
-**The unresolved part: female X ploidy is called 3 where the data says 2.**
+**One caveat on the calls, which turns out not to be a platform problem.**
 
-Sex chromosomes are called correctly for every male sample (X=1, Y=1) and every
-Y call is correct, as is every one of the 60 autosomal calls. Female samples
-(Y coverage 0) get X=3. That is checkable directly from the counts, without
-trusting any reference output: in those samples the mean X coverage equals the
-mean autosome coverage (ratios of 0.94 to 1.05), which is ploidy 2, while male
-samples sit near 0.5 and are called 1. The prior makes the call harder still,
-`contig_ploidy_prior.tsv` gives X ploidy 2 a prior of 0.49 against 0.01 for
-ploidy 3.
+Sex chromosomes are called correctly for every male sample (X=1, Y=1), every Y
+call is correct, and so are all 60 autosomal calls. Female samples (Y coverage 0)
+get X=3 where the data says 2. That is checkable straight from the counts, with no
+reference output needed: in those samples mean X coverage equals mean autosome
+coverage (ratios of 0.94 to 1.05), which is ploidy 2, while male samples sit near
+0.5 and are called 1.
 
-Two runs, differing only in how much training they were allowed:
+Three runs locate the cause, and none of them involves the platform:
 
-| Run | Settings | Female X wrong |
-|---|---|---|
-| reduced | ~1/5 of default iteration counts | 4 of 7 |
-| default | stock parameters, 14.65 min | 7 of 7 |
+| Run | Result |
+|---|---|
+| full cohort, stock parameters | 7 of 7 female X called 3 |
+| full cohort, `--mapping-error-rate 0.01` | female X all correct; 4 **male** X called 2 instead of 1 |
+| the 8 female samples alone, stock parameters | female X all correct (8/8) |
 
-More training made it *more* consistently wrong, so this is not under-training.
+Every failure is the same shape, X over-called by exactly one copy, in whichever
+population the fit currently disfavours. Lowering one likelihood constant moves
+the error from females to males; removing the males removes it entirely. Nothing
+about the binaries, the BLAS or the CPU changes between those runs, so this is a
+property of the model and this dataset, not of aarch64. The same command on
+`x86_64-linux` is expected to reproduce it, though nobody has run it there.
 
-What is NOT known is whether this is specific to `aarch64-linux`. The comparison
-that would answer it, the same command on `x86_64-linux`, has not been run. Note
-also that the `contig-ploidy-calls/` directory committed beside the test data is
-**not** an assertion target: GATK's own `DetermineGermlineContigPloidyIntegrationTest`
-`testCohort()` runs the tool and checks nothing about its output, and those files
-are consumed as *input* by the downstream `GermlineCNVCaller` tests. They agree
-with the coverage ratios, which is why they are cited here at all, but they are a
-fixture of unknown provenance rather than an oracle, and they may predate this
-gcnvkernel.
+The mechanism is visible in `gcnvkernel/models/model_ploidy.py`. `mean_bias_j` is
+a single per-contig parameter shared across the whole cohort, and it enters the
+likelihood multiplied by the ploidy being inferred:
 
-So: mechanism verified, numerics partly verified (autosomes, Y, male X), one
-systematic discrepancy open. Anyone with an x86 box can settle it in fifteen
-minutes with the command above.
+```python
+mu_num_sjk  = t_j * mean_bias_j * ploidy_k
+mu_ratio_sjk = mu_num_sjk / (gamma_rest_sj + mu_num_sjk)      # share of the sample's reads
+mu_sjk = ((1 - eps_mapping) * mu_ratio_sjk + eps_mapping_j) * n_s
+```
+
+`k` and `mean_bias_j` are confounded: predicted share depends on their product, so
+if the fitted X bias is low by a factor f, every sample needs k/f copies. At
+f around 0.67 a female's 2 becomes 3 while a male's 1 lands at 1.5 and rounds
+down, which is exactly the split observed. A cohort containing two different X
+ploidy populations has to fit one shared bias to both.
+
+`mapping_error_rate` shifts where that compromise lands. It defaults to 0.3 and
+enters as `eps_mapping_j = 0.3 * t_j / sum(t_j)`, a floor that is independent of
+copy number: for Y, which is 2.09 Mb of a 10.3 Mb simulated genome, that puts
+about 6 percent of every sample's reads on a contig where female samples have
+exactly zero. The fit absorbs the strain into that contig's unexplained variance,
+`psi_Y` comes back at log -1.77 against roughly -5.5 for every other contig, and
+the residual pushes the shared X bias off. Note X (2.14 Mb) and Y (2.09 Mb) are
+nearly the same length in this simulation, so the misapplied floor is almost
+exactly the size of X's true share; this dataset is unusually sensitive to it.
+
+Worth knowing that GATK's own `DetermineGermlineContigPloidyIntegrationTest`
+`testCohort()` runs the tool and asserts nothing about the calls, and the
+`contig-ploidy-calls/` files committed beside the test data are consumed as
+*input* by the downstream `GermlineCNVCaller` tests. They agree with the coverage
+ratios, which is why they are cited here, but they are a fixture rather than an
+oracle.
 
 **The machine this was verified on is an emulated aarch64 VM (QEMU), roughly 40
 to 70 times slower than native ARM.** Two consequences. First, no timing here says
 anything about aarch64 performance, which is why none is quoted except to size the
 runs above. Second, QEMU advertises a maximal CPU feature set, so libraries that
 dispatch on CPU features at runtime (OpenBLAS kernel selection, torch) may take
-different code paths on a real Graviton or Apple Silicon host. That is a live
-candidate explanation for the X discrepancy and another reason to reproduce it
-natively before drawing conclusions.
+different code paths on a real Graviton or Apple Silicon host. Runtime dispatch was a
+candidate explanation for the X discrepancy above until the cohort-composition and
+mapping-error experiments ruled it out, but it remains a reason to reproduce this
+environment natively before trusting it for production work.
 
 ---
 
