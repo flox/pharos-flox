@@ -151,7 +151,9 @@ Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
 FloxHub org or personal handle. `flox publish` runs from inside each build
 subdirectory — it needs a clean, pushed git tree, and the trailing name is the
-build target, matching the directory under `.flox/pkgs/`. The recipes are
-self-contained (only hash-pinned remote fetches), so each builds correctly from
-its subdirectory of the monorepo. Consumers then install with
+build target: the directory under `.flox/pkgs/` for the four tools, or the
+`[build.<name>]` table in `manifest.toml` for `gatkcondaenv`. The recipes are
+self-contained — the four tools fetch only hash-pinned remote sources, and
+`gatkcondaenv` fetches nothing at all — so each builds correctly from its
+subdirectory of the monorepo. Consumers then install with
 `flox install <your_org_namespace>/<package_name>`.
