@@ -15,20 +15,26 @@ The gatk environment's `[hook]` reads three files at activation: the
 per-platform conda lock, `gatkPythonPackageArchive.zip` (gcnvkernel), and
 `clear-execstack.py`. It used to read them from `$FLOX_ENV_PROJECT`.
 
-`$FLOX_ENV_PROJECT` is just *the directory containing `.flox`*. When the
-environment is a checkout of this repo, that is the repo, and everything works.
-When the environment is pulled from FloxHub with `flox activate -r
-flox-labs/gatk`, it is `~/.cache/flox/remote/<owner>/<name>`, which contains
-only `.flox`:
+When the environment is a checkout of this repo, `$FLOX_ENV_PROJECT` is the repo
+and everything works. When it is pulled from FloxHub with `flox activate -r
+flox-labs/gatk`, `$FLOX_ENV_PROJECT` is **the current working directory** --
+whatever directory the command was run from:
 
 ```
-~/.cache/flox/remote/<owner>/<name>/
-└── .flox
+$ cd /tmp && flox activate -r flox-labs/gatk-4-6-2-0 -- sh -c 'echo $FLOX_ENV_PROJECT'
+/private/tmp
 ```
 
-None of the three files are there. The hook took its "no lock for this
+(The pulled environment itself is cached under
+`~/.cache/flox/remote/<owner>/<name>/`, which holds only `.flox` and none of the
+repo's files -- but that path is not what `$FLOX_ENV_PROJECT` points to either.)
+
+So none of the three files are found. The hook took its "no lock for this
 platform" branch and silently degraded to Java-only tools, with a message that
-blamed a missing lock when the real problem was a missing checkout.
+blamed a missing lock when the real problem was a missing checkout. And because
+the path is an arbitrary cwd rather than a fixed location, the failure is not even
+consistent: run from the wrong directory and it could in principle pick up a
+same-named lock.
 
 Shipping the files as a catalog package fixes that: the gatk environment
 installs this package and reads `$FLOX_ENV/share/gatkcondaenv`, a path that

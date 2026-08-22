@@ -184,6 +184,47 @@ warn_if_macos_toolchain_missing() {
 
 warn_if_macos_toolchain_missing
 
+# ---------------------------------------------------------------------------
+# macOS only: point PyTensor at the conda env's own triple-prefixed clang++.
+#
+# Installing the Command Line Tools fixes the missing SDK but NOT linking. conda's
+# clang 16 passes its LTO plugin by versioned filename and Apple's ld rejects it:
+#
+#     ld: -lto_library library filename must be 'libLTO.dylib'
+#
+# The env passes .../lib/libLTO.16.dylib; /usr/bin/ld (ld-1267) demands that exact
+# basename. A symlink does not help, because clang passes the versioned path
+# explicitly instead of searching. The env ships its own linker but installs no
+# plain `ld`, only <triple>-ld, so bare clang++ finds Apple's. Driving the build
+# through the matching <triple>-clang++ picks up conda's linker and links cleanly.
+#
+# Without this, gCNV does not merely run slowly, it FAILS: a configured-but-unusable
+# compiler makes `import gcnvkernel` raise, where no compiler at all would have made
+# PyTensor fall back to its Python implementation and appear to work.
+# ---------------------------------------------------------------------------
+set_macos_pytensor_compiler() {
+    [ "$(uname -s)" = "Darwin" ] || return 0
+
+    # Respect an explicit cxx= from the caller, including the documented
+    # `PYTENSOR_FLAGS=cxx=` escape hatch that forces the pure-Python backend.
+    case "${PYTENSOR_FLAGS:-}" in
+        *cxx=*) return 0 ;;
+    esac
+
+    # Glob the triple rather than hardcoding it; conda's target triple
+    # (arm64-apple-darwin20.0.0 today) is not ours to pin.
+    local cxx
+    for cxx in "$FLOX_ENV_CACHE"/gatkcondaenv/bin/*-apple-darwin*-clang++; do
+        [ -x "$cxx" ] && break
+        cxx=""
+    done
+    [ -n "$cxx" ] || return 0
+
+    export PYTENSOR_FLAGS="${PYTENSOR_FLAGS:+$PYTENSOR_FLAGS,}cxx=$cxx"
+}
+
+set_macos_pytensor_compiler
+
 # Put the materialized gatkcondaenv's bin FIRST on PATH, on every activation.
 #
 # WHY this is needed: GATK embeds no Python interpreter. When a Python-based tool

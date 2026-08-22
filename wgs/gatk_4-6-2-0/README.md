@@ -140,13 +140,22 @@ order:
    environment portable.
 2. `$FLOX_ENV_PROJECT`, this repo's own copies, for in-tree development.
 
-The fallback is not the general case, and relying on it alone was a bug.
-`$FLOX_ENV_PROJECT` is *the directory containing `.flox`*: for a checkout that is the
-repo, but for an environment pulled from FloxHub with `flox activate -r
-flox-labs/gatk` it is `~/.cache/flox/remote/<owner>/<name>`, which contains only
-`.flox`. None of the three files are there, so the Python tools were silently
+The fallback is not the general case, and relying on it alone was a bug. For a
+checkout, `$FLOX_ENV_PROJECT` is the repo and the files are found. For an
+environment pulled from FloxHub with `flox activate -r flox-labs/gatk`, it is
+**the current working directory** -- whatever directory you happened to run the
+command from, which has nothing to do with this repo:
+
+```
+$ cd /tmp && flox activate -r flox-labs/gatk-4-6-2-0 -- sh -c 'echo $FLOX_ENV_PROJECT'
+/private/tmp
+```
+
+So the three files were simply absent, and the Python tools were silently
 unavailable anywhere outside a checkout, with a message that blamed a missing lock
-rather than a missing repo. See `build/gatkcondaenv/README.md`.
+rather than a missing repo. Worse than merely absent: because the path is an
+arbitrary cwd, running from the wrong directory could in principle *find* a
+same-named lock. See `build/gatkcondaenv/README.md`.
 
 Note this makes the environment independent of *GitHub*, not of the network: first
 activation still downloads ~1.8 GB of conda packages from anaconda.org.
@@ -264,7 +273,7 @@ The same clean-run check on `aarch64-darwin`:
 | exec-stack fix | no-op, 0 libraries (Mach-O, not ELF; the script skips non-ELF files) |
 | Python stack imports | `gcnvkernel`, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0, pysam 0.22.1, `vcf` (pyvcf3) |
 | assets resolve from the package | verified the hard way, by `flox activate -r flox-labs/gatk-4-6-2-0` with no checkout present at all: `$FLOX_ENV/share/gatkcondaenv` supplied the lock, the archive and the exec-stack script, and the env materialized end to end |
-| PyTensor C backend | needs Xcode CLT **and** the env's triple-prefixed compiler; see below |
+| PyTensor C backend | needs Xcode CLT **and** the env's triple-prefixed compiler; the hook now selects the latter automatically, see below |
 | **gCNV end to end** | `DetermineGermlineContigPloidy` on GATK's 20-sample `gcnv-sim-data`, 1.92 min. All 100 discrete calls identical to both `x86_64-linux` and `aarch64-linux`, including the seven disputed female X=3 rows. X `PLOIDY_GQ` agrees to every digit printed: SAMPLE_000 `46.36143757554091` vs `46.361438`, SAMPLE_013 `106.4155162160399` vs `106.415516` |
 
 ### macOS: the CLT is necessary but not sufficient
@@ -296,8 +305,20 @@ degrading, whereas with **no** compiler PyTensor silently drops to its Python
 backend and imports appear to succeed. Both look like "it works" from a distance,
 and only one of them is running compiled code.
 
-The gCNV row above was produced with that flag set. It is not yet applied by the
-`[hook]`, so on macOS it currently has to be exported by the caller.
+The `[hook]` now sets this on Darwin, so no caller action is needed. It globs the
+triple rather than hardcoding `arm64-apple-darwin20.0.0`, skips silently if the
+compiler is absent, and leaves an existing `cxx=` alone -- including the documented
+`PYTENSOR_FLAGS=cxx=` escape hatch that forces the Python backend.
+
+Verified by re-running the gCNV job through a plain `flox activate` with nothing
+exported: the hook supplied
+
+```
+PYTENSOR_FLAGS=cxx=.../gatkcondaenv/bin/arm64-apple-darwin20.0.0-clang++
+```
+
+and the run completed in 2.31 minutes with `ploidy-calls/` **byte-identical** to
+the hand-flagged run.
 
 And on `aarch64-linux`:
 
