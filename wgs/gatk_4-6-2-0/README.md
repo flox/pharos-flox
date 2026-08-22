@@ -43,13 +43,15 @@ and this closes it.
 The `[hook]` materializes gatkcondaenv once, into `$FLOX_ENV_CACHE` (the persistent,
 machine-local, per-environment store that survives reactivation and is never
 committed). The work is guarded by a `.ready` sentinel, so it runs on the first
-activation only. Two small artifacts drive it, both shipped by the
+activation only. Three small artifacts drive it, all shipped by the
 `flox-labs/gatkcondaenv` package rather than committed here (see Portability):
 
 - `gatkcondaenv.<system>.lock`: an explicit conda lock (the exact list of package
   URLs) that `micromamba create --file` installs without solving.
 - `gatkPythonPackageArchive.zip`: gcnvkernel's source, pip-installed into the
   freshly created env.
+- `clear-execstack.py`: run last, to clear a spurious executable-stack flag on
+  conda-forge's `libtorch_cpu.so` (obstacle 3 below).
 
 After the env is built, `[hook]` prepends `gatkcondaenv/bin` to `PATH` on every
 activation, and `[profile]` re-asserts the same for interactive shells (see
