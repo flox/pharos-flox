@@ -115,18 +115,16 @@ The provided binary isn't always named after the package: strelka's entrypoints
 are `configureStrelkaGermlineWorkflow.py` / `configureStrelkaSomaticWorkflow.py`,
 and verifybamid2's binary is `VerifyBamID` (run it with no args for usage).
 
-All four built tools have been exercised on **x86_64-linux**: strelka calls
-the demo variants under pypy27, cutadapt trims adapters, VerifyBamID runs its
-bundled test, and bwa indexes + aligns.
+All five packages are built and published for all three target systems, and the
+four tools have been run on each: strelka calls the demo variants under pypy27,
+cutadapt trims adapters, VerifyBamID runs its bundled test, and bwa indexes +
+aligns. `flox show flox-labs/<package>` is the authoritative check of which
+systems a package covers.
 
-All five packages are now built and published for all three target systems.
-`flox show flox-labs/<package>` lists them, and because `flox publish` builds
-natively for the current host, a system appearing there means the build succeeded
-on that hardware. `strelka` additionally has its runtime behaviour documented per
+Two have their behaviour documented in more detail than "it ran": `strelka` per
 system (unit tests plus both demos on each — see `build/strelka/README.md`), and
-`gatkcondaenv` was verified on `aarch64-darwin` end to end by pulling
-`flox-labs/gatk-4-6-2-0` from FloxHub onto a machine with no checkout and running
-gCNV from it.
+`gatkcondaenv` end to end on `aarch64-darwin`, by pulling `flox-labs/gatk-4-6-2-0`
+from FloxHub onto a machine with no checkout and running gCNV from it.
 
 To build and publish these packages under your own Flox org namespace, clone this
 repo and run `flox publish -o <your_org_namespace> <package_name>` from each build
@@ -146,8 +144,8 @@ cd build/gatkcondaenv  && flox publish -o <your_org_namespace> gatkcondaenv  && 
 Note on **multi-platform packages**: `flox publish` builds natively for the
 current system, so a package that spans systems is published by running the
 command on each. **All five builds target three systems** — `x86_64-linux`,
-`aarch64-linux`, `aarch64-darwin` — and all five are published for all three;
-`flox show flox-labs/<package>` is the authoritative check.
+`aarch64-linux`, `aarch64-darwin` — so each is published three times, once per
+host.
 
 Replace `<your-repo-host>/<this-repo>` with wherever you host this repo (e.g.
 `https://github.com/<your-org>/pharos-flox`) and `<your_org_namespace>` with your
