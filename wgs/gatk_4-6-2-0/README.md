@@ -276,7 +276,7 @@ And on `aarch64-linux`:
 | Python stack imports | `gcnvkernel` 0.9, `scorevariants`, pymc 5.10.1, pytensor 2.18.3, torch 2.1.0.post3, pysam 0.22.0, `vcf` 0.6.8, numpy 1.26.2, scipy 1.11.3, h5py 3.10.0, sklearn 1.3.2 |
 | PyTensor C backend | compiles; `config.cxx` is the env's own `g++` and the function VM is `pytensor.link.c.cvm.CVM` |
 | assets resolve from the package | hook read `$FLOX_ENV/share/gatkcondaenv`, proven by materializing when no in-tree lock existed |
-| **gCNV end to end** | `DetermineGermlineContigPloidy` runs to completion on GATK's own 20-sample `gcnv-sim-data`; all autosome, Y and male X calls correct, female X over-called by one copy for a model reason that is not platform-specific (see below) |
+| **gCNV end to end** | `DetermineGermlineContigPloidy` runs to completion on GATK's own 20-sample `gcnv-sim-data`; output matches a native `x86_64-linux` run call-for-call and GQ-for-GQ. Female X is over-called by one copy on both, for a model reason that is not platform-specific (see below) |
 
 The exec-stack fix and the `which python` check are the two that would silently pass
 a naive smoke test and then fail a real gCNV run, so both are verified explicitly.
@@ -314,8 +314,14 @@ Every failure is the same shape, X over-called by exactly one copy, in whichever
 population the fit currently disfavours. Lowering one likelihood constant moves
 the error from females to males; removing the males removes it entirely. Nothing
 about the binaries, the BLAS or the CPU changes between those runs, so this is a
-property of the model and this dataset, not of aarch64. The same command on
-`x86_64-linux` is expected to reproduce it, though nobody has run it there.
+property of the model and this dataset, not of aarch64.
+
+**Confirmed on `x86_64-linux`.** The stock-parameter run was repeated on a native
+Intel host and reproduced the aarch64 result exactly: all 100 discrete calls
+identical, including all seven disputed female X=3 rows, and every X `PLOIDY_GQ`
+agreeing to all six decimal places compared, nine significant figures. So the
+over-call is not platform-specific, and the aarch64 stack is not computing
+different numbers.
 
 The mechanism is visible in `gcnvkernel/models/model_ploidy.py`. `mean_bias_j` is
 a single per-contig parameter shared across the whole cohort, and it enters the
@@ -355,10 +361,22 @@ to 70 times slower than native ARM.** Two consequences. First, no timing here sa
 anything about aarch64 performance, which is why none is quoted except to size the
 runs above. Second, QEMU advertises a maximal CPU feature set, so libraries that
 dispatch on CPU features at runtime (OpenBLAS kernel selection, torch) may take
-different code paths on a real Graviton or Apple Silicon host. Runtime dispatch was a
-candidate explanation for the X discrepancy above until the cohort-composition and
-mapping-error experiments ruled it out, but it remains a reason to reproduce this
-environment natively before trusting it for production work.
+different code paths on a real Graviton or Apple Silicon host.
+
+That concern is now largely retired by the `x86_64-linux` cross-check above, and
+the comparison is a stronger one than it may look. The two locks do not merely
+select different kernels of one library, they link **different BLAS
+implementations**: `x86_64-linux` pins MKL 2022.2.1 (`libblas-3.9.0-16_linux64_mkl`),
+while `linux-aarch64` has no MKL at all and links OpenBLAS 0.3.25
+(`libblas-3.9.0-20_linuxaarch64_openblas`). Identical output to nine significant
+figures across MKL and OpenBLAS, on different architectures, is a real numerical
+agreement rather than an artifact of the two runs sharing a code path.
+
+Two limits on that claim. It compares the digits that were compared, six decimals
+of `PLOIDY_GQ`, not the raw bits of every model parameter; and it exercises one
+tool on one small dataset, not the whole env. Nothing here has been run on native
+*ARM* hardware, so timings remain meaningless and a Graviton or Apple Silicon host
+is still unexercised.
 
 ---
 
