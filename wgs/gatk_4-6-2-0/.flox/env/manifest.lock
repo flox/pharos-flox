@@ -7,6 +7,9 @@
         "pkg-path": "gatk",
         "version": "4.6.2.0"
       },
+      "gatkcondaenv": {
+        "pkg-path": "flox-labs/gatkcondaenv"
+      },
       "micromamba": {
         "pkg-path": "micromamba"
       }
@@ -29,19 +32,18 @@
     {
       "attr_path": "gatk",
       "broken": false,
-      "derivation": "/nix/store/j5gnpsw44ldl2gsv3jqff2mq18r90jkh-gatk-4.6.2.0.drv",
+      "derivation": "/nix/store/1rx926di0akn792rr136byz1qyin6idh-gatk-4.6.2.0.drv",
       "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
       "install_id": "gatk",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
       "name": "gatk-4.6.2.0",
       "pname": "gatk",
-      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
-      "rev_count": 1027867,
-      "rev_date": "2026-07-05T04:06:12Z",
-      "scrape_date": "2026-07-06T03:12:55.986294Z",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T04:55:34.620027Z",
       "stabilities": [
-        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -50,7 +52,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/j1iv3f6q70ad0rlw25w8kjmvlakg0by2-gatk-4.6.2.0"
+        "out": "/nix/store/s492003mkmx9jqakrcg70fmkakkcnki9-gatk-4.6.2.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -59,19 +61,18 @@
     {
       "attr_path": "gatk",
       "broken": false,
-      "derivation": "/nix/store/jq3jcf98xh3schfivbrmw0zvha4p7ydh-gatk-4.6.2.0.drv",
+      "derivation": "/nix/store/wpxi04bm06zqw8z6py2v21gnwssmb76q-gatk-4.6.2.0.drv",
       "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
       "install_id": "gatk",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
       "name": "gatk-4.6.2.0",
       "pname": "gatk",
-      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
-      "rev_count": 1027867,
-      "rev_date": "2026-07-05T04:06:12Z",
-      "scrape_date": "2026-07-06T03:41:23.001926Z",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:25:03.452873Z",
       "stabilities": [
-        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -80,7 +81,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/29g8314w5qcrlzh3h7c6d22bqm189zgv-gatk-4.6.2.0"
+        "out": "/nix/store/ilzm3dl8jcj402m9nld38lrzbp135k6m-gatk-4.6.2.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -89,19 +90,18 @@
     {
       "attr_path": "gatk",
       "broken": false,
-      "derivation": "/nix/store/z8lrij251qs7wpisn63qvqjmdin3l59j-gatk-4.6.2.0.drv",
+      "derivation": "/nix/store/s2m95bqdhr1s91lyadvy3v4b6mnhxcjb-gatk-4.6.2.0.drv",
       "description": "Wide variety of tools with a primary focus on variant discovery and genotyping",
       "install_id": "gatk",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
       "name": "gatk-4.6.2.0",
       "pname": "gatk",
-      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
-      "rev_count": 1027867,
-      "rev_date": "2026-07-05T04:06:12Z",
-      "scrape_date": "2026-07-06T04:40:25.768427Z",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:57:56.481045Z",
       "stabilities": [
-        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -110,7 +110,88 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/ac7j7fljw53vr5c9zwp8c9lgyrhfvzgz-gatk-4.6.2.0"
+        "out": "/nix/store/nk5z8mqcx9rq857h2l4mx8glczfyq4lw-gatk-4.6.2.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gatkcondaenv",
+      "derivation": "/nix/store/1afnmfjxnbh10qwq051l7q3in3gl4gdz-gatkcondaenv-4.6.2.0-0000e63.drv",
+      "description": "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment",
+      "install_id": "gatkcondaenv",
+      "locked_url": "ssh://git@github.com/flox/pharos-flox.git?rev=ea7b3c3fc5e7bb249c10d5f2ff15f48af433d9a6",
+      "name": "gatkcondaenv-4.6.2.0-0000e63",
+      "pname": "gatkcondaenv",
+      "rev": "ea7b3c3fc5e7bb249c10d5f2ff15f48af433d9a6",
+      "rev_count": 29,
+      "rev_date": "2026-08-22T02:49:29Z",
+      "scrape_date": "2026-08-22T02:55:51.581228382Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "version": "4.6.2.0-0000e63",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "log": "/nix/store/dkm3jmzahgx3cr3qxjww9xy4w2qsfnhp-gatkcondaenv-4.6.2.0-0000e63-log",
+        "out": "/nix/store/qwkxw4cs2vdgdp1g4lc8682aw3jgv9bn-gatkcondaenv-4.6.2.0-0000e63"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gatkcondaenv",
+      "derivation": "/nix/store/5as5wwn1h2rykv0j5pspgr5aza11v003-gatkcondaenv-4.6.2.0-0000e63.drv",
+      "description": "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment",
+      "install_id": "gatkcondaenv",
+      "locked_url": "ssh://git@github.com/flox/pharos-flox.git?rev=3b6a5a01da41a85261c0b342592812f5a9ee2ddf",
+      "name": "gatkcondaenv-4.6.2.0-0000e63",
+      "pname": "gatkcondaenv",
+      "rev": "3b6a5a01da41a85261c0b342592812f5a9ee2ddf",
+      "rev_count": 26,
+      "rev_date": "2026-08-21T22:15:41Z",
+      "scrape_date": "2026-08-22T02:55:51.581233920Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "version": "4.6.2.0-0000e63",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "log": "/nix/store/2lsgdm34cni0kq4wf4qfq6zcbmibrd2p-gatkcondaenv-4.6.2.0-0000e63-log",
+        "out": "/nix/store/x4vyg4haxcqa0sj4phjj6hgmx9r025q8-gatkcondaenv-4.6.2.0-0000e63"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gatkcondaenv",
+      "derivation": "/nix/store/y9w1sm3xr9cbady754rdq6zcv9qa6kz4-gatkcondaenv-4.6.2.0-0000e63.drv",
+      "description": "Conda locks and gcnvkernel archive for GATK's gatkcondaenv Python environment",
+      "install_id": "gatkcondaenv",
+      "locked_url": "ssh://git@github.com/flox/pharos-flox.git?rev=d551322374cc1d0d447dc494100843ae300d1585",
+      "name": "gatkcondaenv-4.6.2.0-0000e63",
+      "pname": "gatkcondaenv",
+      "rev": "d551322374cc1d0d447dc494100843ae300d1585",
+      "rev_count": 28,
+      "rev_date": "2026-08-22T02:11:21Z",
+      "scrape_date": "2026-08-22T02:55:51.581246009Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "version": "4.6.2.0-0000e63",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "log": "/nix/store/absd0hdhy1695fkmmzsvir7cbg0cgwpc-gatkcondaenv-4.6.2.0-0000e63-log",
+        "out": "/nix/store/6h8mp680xcsbwn4281p72nfzzb3mhx6f-gatkcondaenv-4.6.2.0-0000e63"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -119,28 +200,27 @@
     {
       "attr_path": "micromamba",
       "broken": false,
-      "derivation": "/nix/store/s05vd86rm9y0k57w4pxfij69jq171wyv-micromamba-2.6.2.drv",
+      "derivation": "/nix/store/l9439iswxq924ykzmzv8fawvsn8nkp4f-micromamba-2.9.0.drv",
       "description": "Reimplementation of the conda package manager",
       "install_id": "micromamba",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
-      "name": "micromamba-2.6.2",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "micromamba-2.9.0",
       "pname": "micromamba",
-      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
-      "rev_count": 1027867,
-      "rev_date": "2026-07-05T04:06:12Z",
-      "scrape_date": "2026-07-06T03:13:18.413347Z",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T04:55:56.280115Z",
       "stabilities": [
-        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "2.6.2",
+      "version": "2.9.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/mbc517yhqa5y3p9crmv3bll3fanhhrfn-micromamba-2.6.2"
+        "out": "/nix/store/bm7cd5s3av1kzqgjfpxx4q18lms93yl3-micromamba-2.9.0"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -149,28 +229,27 @@
     {
       "attr_path": "micromamba",
       "broken": false,
-      "derivation": "/nix/store/0flhdjbmsf77zm64shzq8af1kr16v93v-micromamba-2.6.2.drv",
+      "derivation": "/nix/store/qbg9d0vd421yjzxvky37narai9faya7p-micromamba-2.9.0.drv",
       "description": "Reimplementation of the conda package manager",
       "install_id": "micromamba",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
-      "name": "micromamba-2.6.2",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "micromamba-2.9.0",
       "pname": "micromamba",
-      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
-      "rev_count": 1027867,
-      "rev_date": "2026-07-05T04:06:12Z",
-      "scrape_date": "2026-07-06T03:41:57.262461Z",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:25:36.633351Z",
       "stabilities": [
-        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "2.6.2",
+      "version": "2.9.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/f20nls9j166pcrjzjdni020ghhr4hyvl-micromamba-2.6.2"
+        "out": "/nix/store/9c6lzd4321nap9346179gyijxak3a4rv-micromamba-2.9.0"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -179,28 +258,27 @@
     {
       "attr_path": "micromamba",
       "broken": false,
-      "derivation": "/nix/store/q426ajsmasb8625v1mm1h26g5jdcbl6y-micromamba-2.6.2.drv",
+      "derivation": "/nix/store/96wp7jqnq46v29pgyi8hw31nnvpfh5c8-micromamba-2.9.0.drv",
       "description": "Reimplementation of the conda package manager",
       "install_id": "micromamba",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=d407951447dcd00442e97087bf374aad70c04cea",
-      "name": "micromamba-2.6.2",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "name": "micromamba-2.9.0",
       "pname": "micromamba",
-      "rev": "d407951447dcd00442e97087bf374aad70c04cea",
-      "rev_count": 1027867,
-      "rev_date": "2026-07-05T04:06:12Z",
-      "scrape_date": "2026-07-06T04:41:02.350541Z",
+      "rev": "0ae2bc1419c3f345984c2629e72e7a631820fa4d",
+      "rev_count": 1057639,
+      "rev_date": "2026-08-18T16:33:49Z",
+      "scrape_date": "2026-08-20T05:58:32.493517Z",
       "stabilities": [
-        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "2.6.2",
+      "version": "2.9.0",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/srfpv3zcmsc6dv346nr45q146nzi1lfc-micromamba-2.6.2"
+        "out": "/nix/store/2hr1dxmg0nq1r45r4hqcbr16a7kax1nd-micromamba-2.9.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",

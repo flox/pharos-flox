@@ -7,6 +7,14 @@ gatk.pkg-path = "gatk"
 gatk.version = "4.6.2.0"
 # The conda package manager used to materialize gatkcondaenv at runtime.
 micromamba.pkg-path = "micromamba"
+# The per-platform conda locks, the gcnvkernel archive and clear-execstack.py,
+# installed to $FLOX_ENV/share/gatkcondaenv where the [hook] below looks for them
+# first. This is what makes the environment work when it is pulled from FloxHub
+# rather than checked out: $FLOX_ENV_PROJECT then holds only .flox, so the
+# in-tree copies beside this manifest are not there. Built from build/gatkcondaenv;
+# published for all three target systems at 4.6.2.0-0000e63. Left unpinned so a
+# newly published lock for another platform is picked up without an edit here.
+gatkcondaenv.pkg-path = "flox-labs/gatkcondaenv"
 
 [hook]
 on-activate = '''
