@@ -43,7 +43,8 @@ and this closes it.
 The `[hook]` materializes gatkcondaenv once, into `$FLOX_ENV_CACHE` (the persistent,
 machine-local, per-environment store that survives reactivation and is never
 committed). The work is guarded by a `.ready` sentinel, so it runs on the first
-activation only. Two small committed artifacts drive it:
+activation only. Two small artifacts drive it, both shipped by the
+`flox-labs/gatkcondaenv` package rather than committed here (see Portability):
 
 - `gatkcondaenv.<system>.lock`: an explicit conda lock (the exact list of package
   URLs) that `micromamba create --file` installs without solving.
@@ -177,15 +178,22 @@ dependencies of the R/plotting stack.
 ## Per-platform locks
 
 Conda packages are architecture-specific, so the lock is per platform, named
-`gatkcondaenv.<system>.lock`. All three target systems are committed and validated:
+`gatkcondaenv.<system>.lock`. All three target systems have one, shipped by the
+assets package and validated:
 `x86_64-linux`, `aarch64-linux` and `aarch64-darwin`. The hook maps the running system to the matching lock; if no lock
 exists for the current platform it says so and skips the Python env, leaving the Java
 tools fully working. To add a platform, generate its lock on that hardware:
 
 ```bash
 # on the target machine, from a solved gatkcondaenv:
-micromamba env export --explicit -p <path-to-gatkcondaenv> > gatkcondaenv.<system>.lock
+micromamba env export --explicit -p <path-to-gatkcondaenv> \
+  > build/gatkcondaenv/gatkcondaenv.<system>.lock
 ```
+
+The lock belongs in `build/gatkcondaenv/`, **not** here: this directory ships no
+assets, and a lock dropped beside this README would be read by nothing. Add it to
+that build's `command`, bump its `version`, rebuild and republish the package (see
+`build/gatkcondaenv/README.md`).
 
 Target systems for this repo are `x86_64-linux`, `aarch64-linux`, and
 `aarch64-darwin`, and each has a lock.
@@ -193,8 +201,9 @@ Target systems for this repo are `x86_64-linux`, `aarch64-linux`, and
 ### aarch64-darwin is a port of the spec, not a re-export
 
 GATK's official `gatkcondaenv.yml` cannot be solved unchanged on Apple Silicon: it
-pins Intel-only MKL. The adapted spec is committed as `gatkcondaenv.macos.yml`, and
-`gatkcondaenv.aarch64-darwin.lock` is what it solves to. Four changes, all forced by
+pins Intel-only MKL. The adapted spec lives in `build/gatkcondaenv/` as
+`gatkcondaenv.macos.yml`, and `gatkcondaenv.aarch64-darwin.lock` is what it solves
+to. Four changes, all forced by
 what conda-forge/bioconda actually publish for `osx-arm64`:
 
 | Upstream pin | On `osx-arm64` | Why |
@@ -212,7 +221,7 @@ neither could simply be dropped. Every other package holds the exact version the
 ### aarch64-linux is a smaller port of the same spec
 
 `linux-aarch64` has the same MKL problem as Apple Silicon and none of the rest of
-it. The adapted spec is committed as `gatkcondaenv.aarch64-linux.yml`. Every pin
+it. The adapted spec is `build/gatkcondaenv/gatkcondaenv.aarch64-linux.yml`. Every pin
 was checked against what conda-forge and bioconda publish for `linux-aarch64`
 before solving, and only three lines needed to change:
 
