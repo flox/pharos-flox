@@ -55,17 +55,19 @@ materialize_gatk_gcnv_env() {
     # Locate the data files this hook needs: the per-platform lock, the gcnvkernel
     # archive, and the exec-stack fix.
     #
-    # PREFERRED: the flox-labs/gatkcondaenv catalog package, which installs them to
-    # $FLOX_ENV/share/gatkcondaenv. That path is present however the environment was
-    # obtained, which is what makes this environment portable.
+    # PREFERRED: the flox-labs/gatkcondaenv catalog package, installed above, which
+    # puts them in $FLOX_ENV/share/gatkcondaenv. That path is present however the
+    # environment was obtained, which is what makes this environment portable, and
+    # it is the path taken in practice now that the package is installed.
     #
     # FALLBACK: this repo's own copies beside the manifest. $FLOX_ENV_PROJECT is the
     # repo ONLY when the environment is a checkout of it. For an environment pulled
     # from FloxHub (`flox activate -r flox-labs/gatk`) it is
     # ~/.cache/flox/remote/<owner>/<name>, which contains just .flox and none of
     # these files, so relying on it alone silently disabled the Python tools
-    # everywhere except in-tree. The fallback exists for in-tree development and can
-    # be dropped once the package is installed everywhere.
+    # everywhere except in-tree. The fallback is now only reached if the package
+    # entry is removed from [install] or fails to resolve; it is kept so that a
+    # checkout still works in that case, and so the two copies can be diffed.
     local assets
     if [ -d "$FLOX_ENV/share/gatkcondaenv" ]; then
         assets="$FLOX_ENV/share/gatkcondaenv"
@@ -76,7 +78,9 @@ materialize_gatk_gcnv_env() {
     local lock="$assets/gatkcondaenv.$sys.lock"
 
     # No lock for this platform: do not fail activation, plain GATK (Java) still
-    # works; only the gCNV/NN Python tools are unavailable.
+    # works; only the gCNV/NN Python tools are unavailable. All three systems in
+    # [options] now have a committed lock, so this branch is reachable only on a
+    # fourth system nobody has generated one on.
     if [ ! -f "$lock" ]; then
         echo "gatk: no gatkcondaenv lock for '$sys', Java tools work; the gCNV/NN Python"
         echo "      tools need one."
@@ -215,8 +219,11 @@ export PATH="$FLOX_ENV_CACHE/gatkcondaenv/bin:$PATH"
 '''
 
 [options]
-# gCNV Python tools are validated on x86_64-linux here; aarch64 locks are
-# generated on that hardware (see README). Java-only GATK works on all three.
+# All three systems have a committed lock and a materialized-and-imported gCNV
+# stack. The gCNV tools themselves have been run on x86_64-linux and aarch64-linux,
+# which agree call-for-call; on aarch64-darwin the stack imports but no gCNV run has
+# been done, and it additionally needs the Xcode Command Line Tools (see README).
+# Conda locks are per platform and must be generated on that hardware.
 systems = [
   "x86_64-linux",
   "aarch64-linux",
